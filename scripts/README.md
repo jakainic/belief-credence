@@ -1,0 +1,159 @@
+# RunPod Evaluation Scripts
+
+Scripts for running evaluations on RunPod and generating comparison visualizations.
+
+## Quick Start
+
+### 1. Setup on RunPod
+
+```bash
+# Clone repo
+git clone https://github.com/jakainic/belief-credence
+cd belief-credence
+
+# Install dependencies
+pip install -e . -r requirements.txt
+
+# Verify HF token is set
+python -c "import os; print('HF_TOKEN is set:', bool(os.getenv('HF_TOKEN')))"
+```
+
+### 2. Run Evaluation
+
+```bash
+python scripts/run_evaluation.py
+```
+
+This will:
+- Load Llama-2-8b-hf (8-bit quantization)
+- Train CCS probe on well-established facts
+- Evaluate all 3 methods on contested facts
+- Time each method separately
+- Save outputs to `outputs/runpod_evaluation/`
+
+**Expected runtime:** ~15-30 minutes depending on GPU
+
+### 3. Generate Plots
+
+```bash
+python scripts/generate_plots.py
+```
+
+This will:
+- Load saved estimates
+- Generate 4 comparison plots
+- Save to `outputs/visualizations/`
+
+### 4. Download Results
+
+Download the `outputs/` folder from RunPod to view:
+- `outputs/runpod_evaluation/*.json` - Raw estimates
+- `outputs/visualizations/*.png` - Comparison plots
+
+## Scripts
+
+### `run_evaluation.py`
+
+Runs full evaluation pipeline with timing.
+
+**Features:**
+- Loads model once, reuses across methods
+- Times each stage (model loading, CCS training, per-method evaluation)
+- Progress indicators with ETA
+- Saves estimates to JSON
+- Prints summary statistics
+
+**Output:**
+```
+outputs/runpod_evaluation/
+├── direct_prompting_Llama-2-8b-hf.json
+├── logit_gap_Llama-2-8b-hf.json
+└── ccs_Llama-2-8b-hf_layer-1.json
+```
+
+### `generate_plots.py`
+
+Generates comparison visualizations from saved estimates.
+
+**Usage:**
+```bash
+# Default (uses outputs/runpod_evaluation/)
+python scripts/generate_plots.py
+
+# Custom directories
+python scripts/generate_plots.py \
+    --input-dir path/to/estimates \
+    --output-dir path/to/plots \
+    --report-name my_comparison
+```
+
+**Output:**
+```
+outputs/visualizations/
+├── method_comparison_overview.png      # 4-panel comprehensive view
+├── method_comparison_claims.png        # Claim-by-claim bars
+├── method_comparison_heatmap.png       # Agreement heatmap
+└── method_comparison_calibration.png   # Distribution curves
+```
+
+## Customization
+
+### Evaluate on Different Dataset
+
+Edit `run_evaluation.py`:
+
+```python
+# Change evaluation dataset
+eval_claim_sets = get_dataset(BeliefType.UNCERTAIN_PREDICTIONS)  # Instead of CONTESTED_FACT
+```
+
+Available datasets:
+- `WELL_ESTABLISHED_FACT` - Scientific facts (low disagreement expected)
+- `CONTESTED_FACT` - Debated claims (high disagreement expected)
+- `CERTAIN_PREDICTION` - High-confidence future events
+- `UNCERTAIN_PREDICTION` - Speculative future claims
+- `NORMATIVE_JUDGMENT` - Moral/political values
+- `METAPHYSICAL_BELIEF` - Philosophical positions
+
+### Change CCS Layer
+
+Edit `run_evaluation.py`:
+
+```python
+ccs = CCS(model=model, direction_method="logit_gap", layer=-2)  # Try different layer
+```
+
+### Use Different Model
+
+Edit `run_evaluation.py`:
+
+```python
+model = ModelWrapper("meta-llama/Meta-Llama-3-8B", load_in_8bit=True)
+```
+
+## Troubleshooting
+
+**Out of memory?**
+- Model is already using 8-bit quantization
+- Try reducing batch processing or use smaller model
+
+**HF token not found?**
+- Verify: `echo $HF_TOKEN` in RunPod terminal
+- Should see your token
+- If empty, set in RunPod pod configuration
+
+**Plots not generating?**
+- Make sure matplotlib/seaborn are installed: `pip install matplotlib seaborn`
+- Check `outputs/runpod_evaluation/` has JSON files
+
+## Expected Timings (A100 GPU)
+
+Approximate times for 3 contested fact claims:
+
+- Model loading: ~30s
+- CCS training (3 claims, 100 epochs): ~2-3 min
+- Direct Prompting: ~1-2s per claim
+- Logit Gap: ~0.5-1s per claim
+- CCS evaluation: ~0.5-1s per claim
+
+Total: ~5-10 minutes for full pipeline
