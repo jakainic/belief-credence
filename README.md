@@ -467,6 +467,66 @@ estimate = ccs.estimate(claim)
 
 See `examples/batch_evaluate_and_save.py` and `METHOD_DEPENDENCIES.md` for more details.
 
+## Visualization
+
+Visualize and compare method outputs with built-in plotting functions:
+
+### Quick Visualization
+
+```python
+from belief_credence import (
+    plot_method_comparison,
+    plot_claim_by_claim_comparison,
+)
+
+# After evaluating methods...
+estimates_by_method = {
+    "DirectPrompting": direct_estimates,
+    "LogitGap": logit_estimates,
+    "CCS": ccs_estimates,
+}
+
+# Comprehensive comparison plot
+plot_method_comparison(estimates_by_method, title="Method Comparison")
+
+# Claim-by-claim bar chart
+plot_claim_by_claim_comparison(estimates_by_method, max_claims=20)
+```
+
+### Available Plots
+
+1. **`plot_method_comparison()`**: Comprehensive 4-panel figure
+   - Pairwise scatter plots
+   - P(True) distributions
+   - Correlation heatmap
+   - Summary statistics
+
+2. **`plot_claim_by_claim_comparison()`**: Bar chart showing P(True) for each claim
+
+3. **`plot_agreement_heatmap()`**: Heatmap showing where methods agree/disagree
+
+4. **`plot_calibration_comparison()`**: Distribution of P(True) values across methods
+
+### Generate Complete Report
+
+```python
+from belief_credence import create_comparison_report
+
+# Generate all plots and save to directory
+create_comparison_report(
+    estimates_by_method,
+    output_dir="outputs/visualization_report",
+    report_name="method_comparison"
+)
+# Creates:
+#   - method_comparison_overview.png
+#   - method_comparison_claims.png
+#   - method_comparison_heatmap.png
+#   - method_comparison_calibration.png
+```
+
+See `examples/visualize_comparisons.py` for a complete example.
+
 ## References
 
 - **CCS**: [Burns et al. 2022 - Discovering Latent Knowledge in Language Models Without Supervision](https://arxiv.org/abs/2212.03827)
