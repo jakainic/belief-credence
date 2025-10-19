@@ -50,13 +50,13 @@ ruff check .
 ruff check --fix .
 
 # Type checking (strict mode)
-mypy src
+mypy belief_credence
 ```
 
 ### Full CI Check
 ```bash
 # Run the same checks as CI
-ruff check . && mypy src && pytest -q
+ruff check . && mypy belief_credence && pytest -q
 ```
 
 ### Running Examples

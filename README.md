@@ -148,7 +148,7 @@ pip install -e . -r requirements.txt -r requirements-dev.txt
 pytest
 
 # Type checking
-mypy src
+mypy belief_credence
 
 # Linting
 ruff check .
