@@ -14,9 +14,15 @@ cd belief-credence
 # Install dependencies
 pip install -e . -r requirements.txt
 
-# Verify HF token is set
-python -c "import os; print('HF_TOKEN is set:', bool(os.getenv('HF_TOKEN')))"
+# Test setup (IMPORTANT: run this first!)
+python scripts/test_setup.py
 ```
+
+This quick test (~2-3 min) verifies:
+- HF token is configured
+- Model loads successfully
+- All three methods work
+- Outputs can be saved
 
 ### 2. Run Evaluation
 
@@ -51,6 +57,21 @@ Download the `outputs/` folder from RunPod to view:
 - `outputs/visualizations/*.png` - Comparison plots
 
 ## Scripts
+
+### `test_setup.py`
+
+Quick validation script to verify everything works before running full evaluation.
+
+**Features:**
+- Checks HF token is set
+- Loads model (with timing)
+- Trains small CCS probe (10 epochs, 2 claims)
+- Tests all 3 methods on a single claim
+- Verifies output saving works
+
+**Expected runtime:** ~2-3 minutes
+
+**Run this FIRST** to catch any issues before the longer evaluation.
 
 ### `run_evaluation.py`
 
