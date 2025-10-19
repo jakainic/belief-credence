@@ -7,6 +7,18 @@ from belief_credence.hallucination_probe import HallucinationProbe
 from belief_credence.prompting import DirectPrompting
 from belief_credence.comparison import MethodComparison, compare_methods, compare_on_dataset
 from belief_credence.model_utils import ModelWrapper
+from belief_credence.epistemology import (
+    ConsistencyCheck,
+    CoherenceCheck,
+    BayesianConditioningCheck,
+    ActionCorrelationCheck,
+    EpistemologyReport,
+    check_consistency,
+    check_coherence,
+    check_bayesian_conditioning,
+    check_action_correlation,
+    evaluate_epistemology,
+)
 
 __all__ = [
     "Claim",
@@ -20,4 +32,14 @@ __all__ = [
     "ModelWrapper",
     "compare_methods",
     "compare_on_dataset",
+    "ConsistencyCheck",
+    "CoherenceCheck",
+    "BayesianConditioningCheck",
+    "ActionCorrelationCheck",
+    "EpistemologyReport",
+    "check_consistency",
+    "check_coherence",
+    "check_bayesian_conditioning",
+    "check_action_correlation",
+    "evaluate_epistemology",
 ]

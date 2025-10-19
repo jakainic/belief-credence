@@ -63,6 +63,9 @@ ruff check . && mypy src && pytest -q
 ```bash
 # Compare all methods on sample claims
 python examples/compare_methods.py
+
+# Evaluate epistemological properties
+python examples/evaluate_epistemology.py
 ```
 
 ## Architecture
@@ -92,6 +95,13 @@ python examples/compare_methods.py
   - `compare_on_dataset()`: Batch evaluation
   - `MethodComparison`: Results with statistics (mean, std, range)
 
+- **`epistemology.py`**: Evaluation of Bayesian epistemological properties
+  - `check_consistency()`: P(T) + P(F) ≈ 1 for contrast pairs
+  - `check_coherence()`: Similar credences for paraphrases
+  - `check_bayesian_conditioning()`: P(A|B) ≈ P(A∧B)/P(B)
+  - `check_action_correlation()`: Internal credence vs action probability
+  - `evaluate_epistemology()`: Comprehensive evaluation with report
+
 ### Design Principles
 
 All methods implement the same interface:
@@ -120,10 +130,15 @@ method2 = LogitGap(model=model)
 ### Completed
 - ✓ Core architecture with `Claim`, `CredenceEstimate`, `CredenceMethod`
 - ✓ Model loading and activation extraction infrastructure
-- ✓ All four methods implemented and functional
-- ✓ Comparison utilities
-- ✓ Example usage script
-- ✓ Basic unit tests
+- ✓ All four credence methods implemented and functional
+- ✓ Comparison utilities for evaluating multiple methods
+- ✓ Epistemological property evaluation:
+  - Logical consistency (P(T) + P(F) ≈ 1)
+  - Coherence across paraphrases
+  - Bayesian conditioning (P(A|B) ≈ P(A∧B)/P(B))
+  - Action-belief correlation
+- ✓ Example scripts (method comparison & epistemology evaluation)
+- ✓ Comprehensive unit tests
 
 ### Next Steps
 To improve the methods, consider:

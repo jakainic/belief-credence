@@ -173,6 +173,101 @@ This ensures consistent outputs with:
 
 See `examples/compare_methods.py` for a complete usage example.
 
+## Epistemological Property Evaluation
+
+Beyond just extracting credences, this library can evaluate whether the estimates follow rational Bayesian principles:
+
+### 1. Logical Consistency
+Check if P(statement) + P(negation) ≈ 1:
+
+```python
+from belief_credence import check_consistency, Claim
+
+claim = Claim(
+    statement="The Earth orbits the Sun.",
+    negation="The Earth does not orbit the Sun."
+)
+
+result = check_consistency(method, claim)
+print(f"P(statement): {result.p_statement:.3f}")
+print(f"P(negation): {result.p_negation:.3f}")
+print(f"Sum: {result.sum_probability:.3f}")
+print(f"Consistent? {result.is_consistent}")
+print(f"Score: {result.consistency_score:.3f}")
+```
+
+### 2. Coherence Across Paraphrases
+Check if semantically equivalent statements get similar credences:
+
+```python
+from belief_credence import check_coherence
+
+claim = Claim(statement="Paris is the capital of France.")
+paraphrases = [
+    "France's capital is Paris.",
+    "The capital city of France is Paris.",
+]
+
+result = check_coherence(method, claim, paraphrases)
+print(f"Std deviation: {result.std_deviation:.3f}")
+print(f"Coherent? {result.is_coherent}")
+```
+
+### 3. Bayesian Conditioning
+Check if P(A|B) ≈ P(A ∧ B) / P(B):
+
+```python
+from belief_credence import check_bayesian_conditioning
+
+result = check_bayesian_conditioning(
+    method,
+    proposition="the ground is wet",
+    evidence="it is raining"
+)
+
+print(f"P(A|B) measured: {result.p_a_given_b:.3f}")
+print(f"P(A|B) expected: {result.expected_p_a_given_b:.3f}")
+print(f"Bayesian? {result.is_bayesian}")
+```
+
+### 4. Action-Belief Correlation
+Check if internal credence correlates with action probabilities:
+
+```python
+from belief_credence import check_action_correlation
+
+claim = Claim(statement="The Earth is round.")
+action_prompt = "Would you bet $100 that: {claim.statement}"
+
+result = check_action_correlation(method, claim, action_prompt)
+print(f"Internal credence: {result.internal_credence:.3f}")
+print(f"Action probability: {result.action_probability:.3f}")
+print(f"Aligned? {result.is_aligned}")
+```
+
+### Comprehensive Evaluation
+Run all checks at once:
+
+```python
+from belief_credence import evaluate_epistemology
+
+report = evaluate_epistemology(
+    method,
+    consistency_claims=[...],
+    coherence_tests=[...],
+    bayesian_tests=[...],
+    action_tests=[...]
+)
+
+print(f"Overall consistency: {report.overall_consistency_score:.3f}")
+print(f"Overall coherence: {report.overall_coherence_score:.3f}")
+print(f"Overall Bayesian: {report.overall_bayesian_score:.3f}")
+print(f"Overall action: {report.overall_action_score:.3f}")
+print(f"Overall epistemology: {report.overall_epistemology_score:.3f}")
+```
+
+See `examples/evaluate_epistemology.py` for a complete example.
+
 ## References
 
 - **CCS**: [Burns et al. 2022 - Discovering Latent Knowledge in Language Models Without Supervision](https://arxiv.org/abs/2212.03827)
