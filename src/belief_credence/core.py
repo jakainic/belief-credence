@@ -1,42 +1,71 @@
+"""Core utilities for beliefs, credences, and Bayesian updates."""
+
 from __future__ import annotations
 
-from typing import Tuple
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Any
 
 
-def bayes_posterior(prior: float, likelihood: float, evidence: float) -> float:
-    """Compute posterior P(H|E) given prior P(H), likelihood P(E|H), and evidence P(E).
+@dataclass
+class Claim:
+    """Represents a claim to be evaluated for credence.
 
-    Uses Bayes' rule: P(H|E) = P(E|H) P(H) / P(E)
+    Attributes:
+        statement: The original claim statement
+        negation: The negation of the claim (auto-generated or manual)
+        metadata: Optional dict for method-specific data
     """
-    if not (0.0 <= prior <= 1.0):
-        raise ValueError("prior must be in [0, 1]")
-    if not (0.0 <= likelihood <= 1.0):
-        raise ValueError("likelihood must be in [0, 1]")
-    if not (0.0 < evidence <= 1.0):
-        raise ValueError("evidence must be in (0, 1]")
-    return (likelihood * prior) / evidence
+    statement: str
+    negation: str | None = None
+    metadata: dict[str, Any] | None = None
+
+    def __post_init__(self) -> None:
+        if self.metadata is None:
+            self.metadata = {}
 
 
-def odds(p: float) -> float:
-    if not (0.0 < p < 1.0):
-        raise ValueError("probability must be in (0, 1) for odds")
-    return p / (1.0 - p)
+@dataclass
+class CredenceEstimate:
+    """Result of a credence measurement.
 
-
-def prob_from_odds(o: float) -> float:
-    if o <= 0.0:
-        raise ValueError("odds must be > 0")
-    return o / (1.0 + o)
-
-
-def bayes_update_via_likelihood_ratio(prior: float, lr: float) -> float:
-    """Update prior using likelihood ratio LR = P(E|H)/P(E|~H).
-    Returns posterior probability P(H|E).
+    Attributes:
+        p_true: Probability estimate that the claim is true (0 to 1)
+        method: Name of the method used
+        claim: The original claim
+        raw_output: Method-specific raw output for debugging
+        metadata: Additional method-specific information
     """
-    if not (0.0 < prior < 1.0):
-        raise ValueError("prior must be in (0, 1)")
-    if lr <= 0.0:
-        raise ValueError("likelihood ratio must be > 0")
-    prior_odds = odds(prior)
-    post_odds = prior_odds * lr
-    return prob_from_odds(post_odds)
+    p_true: float
+    method: str
+    claim: Claim
+    raw_output: Any | None = None
+    metadata: dict[str, Any] | None = None
+
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.p_true <= 1.0:
+            raise ValueError(f"p_true must be in [0, 1], got {self.p_true}")
+        if self.metadata is None:
+            self.metadata = {}
+
+
+class CredenceMethod(ABC):
+    """Base class for all credence measurement methods."""
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Name of this credence measurement method."""
+        pass
+
+    @abstractmethod
+    def estimate(self, claim: Claim) -> CredenceEstimate:
+        """Estimate P(True) for a given claim.
+
+        Args:
+            claim: The claim to evaluate
+
+        Returns:
+            CredenceEstimate with p_true and method-specific metadata
+        """
+        pass

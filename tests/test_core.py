@@ -1,30 +1,47 @@
-import math
+"""Tests for core data structures."""
+
 import pytest
 
-from belief_credence.core import bayes_posterior, bayes_update_via_likelihood_ratio, odds, prob_from_odds
+from belief_credence.core import Claim, CredenceEstimate
 
 
-def test_bayes_posterior_basic():
-    # P(H)=0.3, P(E|H)=0.8, P(E)=0.5 -> 0.48
-    assert math.isclose(bayes_posterior(0.3, 0.8, 0.5), 0.48, rel_tol=1e-9)
+def test_claim_creation() -> None:
+    claim = Claim(statement="The sky is blue.")
+    assert claim.statement == "The sky is blue."
+    assert claim.negation is None
+    assert claim.metadata == {}
 
 
-@pytest.mark.parametrize("prior,lr,expected", [
-    (0.5, 1.0, 0.5),
-    (0.5, 3.0, 0.75),
-    (0.2, 4.0, 0.5),
-])
-def test_bayes_update_via_likelihood_ratio(prior, lr, expected):
-    assert math.isclose(bayes_update_via_likelihood_ratio(prior, lr), expected, rel_tol=1e-9)
+def test_claim_with_negation() -> None:
+    claim = Claim(
+        statement="Paris is the capital of France.",
+        negation="Paris is not the capital of France.",
+    )
+    assert claim.statement == "Paris is the capital of France."
+    assert claim.negation == "Paris is not the capital of France."
 
 
-def test_odds_roundtrip():
-    p = 0.37
-    o = odds(p)
-    assert math.isclose(prob_from_odds(o), p, rel_tol=1e-12)
+def test_credence_estimate_valid() -> None:
+    claim = Claim(statement="Test claim")
+    estimate = CredenceEstimate(p_true=0.75, method="test_method", claim=claim)
+    assert estimate.p_true == 0.75
+    assert estimate.method == "test_method"
+    assert estimate.claim == claim
 
 
-@pytest.mark.parametrize("prior", [-0.1, 0.0, 1.0, 1.1])
-def test_invalid_prior_for_lr_update(prior):
-    with pytest.raises(ValueError):
-        bayes_update_via_likelihood_ratio(prior, 2.0)
+def test_credence_estimate_invalid_probability() -> None:
+    claim = Claim(statement="Test claim")
+    with pytest.raises(ValueError, match="p_true must be in"):
+        CredenceEstimate(p_true=1.5, method="test_method", claim=claim)
+
+    with pytest.raises(ValueError, match="p_true must be in"):
+        CredenceEstimate(p_true=-0.1, method="test_method", claim=claim)
+
+
+def test_credence_estimate_boundary_values() -> None:
+    claim = Claim(statement="Test claim")
+    est_zero = CredenceEstimate(p_true=0.0, method="test", claim=claim)
+    assert est_zero.p_true == 0.0
+
+    est_one = CredenceEstimate(p_true=1.0, method="test", claim=claim)
+    assert est_one.p_true == 1.0
