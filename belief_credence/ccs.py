@@ -44,6 +44,11 @@ class CCS(CredenceMethod):
     This method finds a direction in the model's activation space that is
     consistent across contrast pairs (statement and its negation). The direction
     is learned to satisfy logical consistency properties without supervision.
+
+    To ensure the probe learns "what the model believes is true" rather than
+    an arbitrary direction, we use a reference method (logit gap or self-labeling)
+    to orient the training data: "positive" examples are statements the model
+    believes, "negative" examples are statements it doesn't believe.
     """
 
     def __init__(
@@ -51,6 +56,7 @@ class CCS(CredenceMethod):
         model: ModelWrapper | None = None,
         model_name: str = "meta-llama/Llama-2-8b-hf",
         layer: int = -1,
+        direction_method: str = "logit_gap",
     ):
         """Initialize the CCS method.
 
@@ -58,18 +64,78 @@ class CCS(CredenceMethod):
             model: Pre-loaded ModelWrapper (if None, will load model_name)
             model_name: Name of the model to use
             layer: Which layer to extract activations from (-1 = last layer)
+            direction_method: How to determine probe direction ("logit_gap" or "self_label")
         """
         self.model = model if model is not None else ModelWrapper(model_name)
         self.model_name = model_name
         self.layer = layer
+        self.direction_method = direction_method
         self._probe: CCSProbe | None = None
 
     @property
     def name(self) -> str:
         return f"ccs_{self.model_name.split('/')[-1]}_layer{self.layer}"
 
+    def _get_model_belief_logit_gap(self, claim: Claim) -> bool:
+        """Determine if model believes positive statement using logit gap.
+
+        Args:
+            claim: Claim with statement and negation
+
+        Returns:
+            True if model believes positive statement, False otherwise
+        """
+        from belief_credence.logit_gap import LogitGap
+
+        logit_method = LogitGap(model=self.model)
+        estimate = logit_method.estimate(claim)
+        return estimate.p_true > 0.5
+
+    def _get_model_belief_self_label(self, claim: Claim) -> bool:
+        """Determine if model believes positive statement by asking it directly.
+
+        Args:
+            claim: Claim with statement and negation
+
+        Returns:
+            True if model believes positive statement, False otherwise
+        """
+        prompt = f"""Which statement is true?
+A: {claim.statement}
+B: {claim.negation}
+
+Answer:"""
+
+        token_probs = self.model.get_token_probabilities(prompt, ["A", "B"])
+        p_a = token_probs.get("A", 0.0)
+        p_b = token_probs.get("B", 0.0)
+        return p_a > p_b
+
+    def _get_model_belief(self, claim: Claim) -> bool:
+        """Determine if model believes positive statement.
+
+        Args:
+            claim: Claim with statement and negation
+
+        Returns:
+            True if model believes positive statement, False otherwise
+        """
+        if self.direction_method == "logit_gap":
+            return self._get_model_belief_logit_gap(claim)
+        elif self.direction_method == "self_label":
+            return self._get_model_belief_self_label(claim)
+        else:
+            raise ValueError(
+                f"Unknown direction_method: {self.direction_method}. "
+                f"Must be 'logit_gap' or 'self_label'"
+            )
+
     def estimate(self, claim: Claim) -> CredenceEstimate:
         """Estimate P(True) using CCS probe.
+
+        The probe outputs P(model believes statement is true). We use the
+        direction method to determine if we need to evaluate the statement
+        or its negation.
 
         Args:
             claim: The claim to evaluate (must have negation)
@@ -83,6 +149,9 @@ class CCS(CredenceMethod):
         if self._probe is None:
             self.train_probe([claim])
 
+        # Determine which statement the model believes
+        model_believes_positive = self._get_model_belief(claim)
+
         pos_hidden, neg_hidden = self.model.get_contrast_activations(
             claim.statement, claim.negation, self.layer
         )
@@ -91,19 +160,30 @@ class CCS(CredenceMethod):
         neg_hidden_mean = neg_hidden.mean(dim=0).unsqueeze(0)
 
         with torch.no_grad():
-            p_pos = self._probe(pos_hidden_mean).item()
-            p_neg = self._probe(neg_hidden_mean).item()
-
-        p_true = p_pos
+            # Probe outputs P(model believes this statement)
+            # So we need to apply it to the statement the model believes
+            if model_believes_positive:
+                p_believed = self._probe(pos_hidden_mean).item()
+                p_disbelieved = self._probe(neg_hidden_mean).item()
+                p_true = p_believed  # Model believes positive statement
+            else:
+                p_believed = self._probe(neg_hidden_mean).item()
+                p_disbelieved = self._probe(pos_hidden_mean).item()
+                p_true = 1.0 - p_believed  # Model believes negative statement
 
         return CredenceEstimate(
             p_true=p_true,
             method=self.name,
             claim=claim,
-            raw_output={"p_pos": p_pos, "p_neg": p_neg},
+            raw_output={
+                "p_believed": p_believed,
+                "p_disbelieved": p_disbelieved,
+                "model_believes_positive": model_believes_positive,
+            },
             metadata={
                 "layer": self.layer,
-                "consistency_score": abs(p_pos + p_neg - 1.0),
+                "consistency_score": abs(p_believed + p_disbelieved - 1.0),
+                "direction_method": self.direction_method,
             },
         )
 
@@ -111,6 +191,11 @@ class CCS(CredenceMethod):
         self, claims: list[Claim], epochs: int = 100, lr: float = 1e-3
     ) -> None:
         """Train the CCS probe on a set of contrast pairs.
+
+        The probe is trained to output high values for statements the model
+        believes are true and low values for statements it believes are false.
+        Training data is reordered based on the model's beliefs (determined by
+        the direction_method) to ensure the probe learns the correct direction.
 
         Args:
             claims: List of claims with negations for training
@@ -124,12 +209,21 @@ class CCS(CredenceMethod):
             if claim.negation is None:
                 continue
 
+            # Determine which statement the model believes is true
+            model_believes_positive = self._get_model_belief(claim)
+
             pos_hidden, neg_hidden = self.model.get_contrast_activations(
                 claim.statement, claim.negation, self.layer
             )
 
-            activations_pos.append(pos_hidden.mean(dim=0))
-            activations_neg.append(neg_hidden.mean(dim=0))
+            # Reorder: "positive" = what model believes, "negative" = what it doesn't
+            if model_believes_positive:
+                activations_pos.append(pos_hidden.mean(dim=0))
+                activations_neg.append(neg_hidden.mean(dim=0))
+            else:
+                # Swap them - model believes the negation
+                activations_pos.append(neg_hidden.mean(dim=0))
+                activations_neg.append(pos_hidden.mean(dim=0))
 
         if not activations_pos:
             raise ValueError("No valid contrast pairs found for training")
@@ -214,6 +308,7 @@ def search_best_layer(
     layers: list[int] | None = None,
     epochs: int = 100,
     lr: float = 1e-3,
+    direction_method: str = "logit_gap",
 ) -> LayerSearchResult:
     """Search for the best layer for CCS probe.
 
@@ -224,6 +319,7 @@ def search_best_layer(
         layers: List of layer indices to search (defaults to [-1, -2, -3, -4, -5])
         epochs: Number of training epochs per layer
         lr: Learning rate
+        direction_method: How to determine probe direction ("logit_gap" or "self_label")
 
     Returns:
         LayerSearchResult with best layer, score, and trained probe
@@ -239,7 +335,7 @@ def search_best_layer(
     best_probe = None
 
     for layer in layers:
-        ccs = CCS(model=model, layer=layer)
+        ccs = CCS(model=model, layer=layer, direction_method=direction_method)
         ccs.train_probe(training_claims, epochs=epochs, lr=lr)
 
         # Evaluate on validation set

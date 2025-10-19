@@ -95,8 +95,10 @@ python examples/evaluate_with_datasets.py
   - `prompting.py`: Direct prompting - asks model for credence, parses numeric response
   - `logit_gap.py`: Extracts P("True")/P("False") token probabilities and normalizes
   - `ccs.py`: Trains linear probe on contrast pairs with consistency loss
+    - Uses `direction_method` ("logit_gap" or "self_label") to orient probe correctly
+    - Reorders training data so "positive" = what model believes, "negative" = what it doesn't
+    - Ensures probe learns "what model believes is true" not arbitrary direction
     - Includes `search_best_layer()` utility for hyperparameter tuning
-    - Finds optimal layer by comparing consistency scores across layers
 
 - **`uncertainty.py`**: Uncertainty/confidence estimation (not a direct credence method)
   - `HallucinationProbe`: Linear probe on hidden states for uncertainty estimation

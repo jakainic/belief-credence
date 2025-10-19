@@ -99,12 +99,18 @@ print(estimate.metadata["p_false_raw"])  # Raw P("False")
 ```
 
 ### CCS (Contrast Consistent Search)
-Trains a linear probe to find truth direction from contrast pairs.
+Trains a linear probe to find the model's internal belief direction from contrast pairs.
+
+**Key Innovation**: To ensure the probe learns "what the model believes is true" rather than an arbitrary direction, CCS uses a reference method (logit gap or self-labeling) to orient the training data. This ensures high probe outputs correspond to statements the model believes.
 
 ```python
 from belief_credence import CCS, Claim
 
-method = CCS(model_name="meta-llama/Llama-2-8b-hf", layer=-1)
+# Use logit gap to determine direction (default)
+method = CCS(model_name="meta-llama/Llama-2-8b-hf", layer=-1, direction_method="logit_gap")
+
+# Or use self-labeling (asks model which statement is true)
+# method = CCS(model_name="meta-llama/Llama-2-8b-hf", layer=-1, direction_method="self_label")
 
 # Train on multiple claims with negations
 training_claims = [
@@ -119,6 +125,7 @@ claim = Claim("The sky is blue.", "The sky is not blue.")
 estimate = method.estimate(claim)
 print(estimate.p_true)
 print(estimate.metadata["consistency_score"])  # Lower is better
+print(estimate.metadata["direction_method"])  # Which method was used
 ```
 
 #### Layer Search for CCS
@@ -139,7 +146,8 @@ training_claims = [cs.to_claims()[0] for cs in claim_sets]
 result = search_best_layer(
     model=model,
     training_claims=training_claims,
-    layers=[-1, -2, -3, -4, -5]
+    layers=[-1, -2, -3, -4, -5],
+    direction_method="logit_gap"  # or "self_label"
 )
 
 print(f"Best layer: {result.layer}")

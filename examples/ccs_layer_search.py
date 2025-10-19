@@ -39,6 +39,7 @@ def main() -> None:
         layers=layers_to_search,
         epochs=100,
         lr=1e-3,
+        direction_method="logit_gap",
     )
 
     print(f"\n{'=' * 80}")
@@ -74,7 +75,7 @@ def main() -> None:
     print(f"{'=' * 80}")
 
     # Compare with default layer (-1)
-    default_ccs = CCS(model=model, layer=-1)
+    default_ccs = CCS(model=model, layer=-1, direction_method="logit_gap")
     default_ccs.train_probe(training_claims, epochs=100)
 
     print("\nUsing default layer (-1):")

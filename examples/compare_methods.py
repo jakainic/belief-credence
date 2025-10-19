@@ -42,7 +42,7 @@ def main() -> None:
     methods = [
         DirectPrompting(model=model),
         LogitGap(model=model),
-        CCS(model=model),
+        CCS(model=model, direction_method="logit_gap"),
     ]
 
     print("Initializing uncertainty probe...")
