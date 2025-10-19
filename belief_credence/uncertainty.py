@@ -88,7 +88,7 @@ class HallucinationProbe:
     def __init__(
         self,
         model: ModelWrapper | None = None,
-        model_name: str = "meta-llama/Llama-2-8b-hf",
+        model_name: str = "meta-llama/Llama-2-7b-hf",
         layer: int = -1,
     ):
         """Initialize the hallucination probe.

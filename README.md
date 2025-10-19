@@ -45,7 +45,7 @@ from belief_credence import Claim, DirectPrompting, LogitGap, compare_methods
 from belief_credence.model_utils import ModelWrapper
 
 # Load model once, share across methods
-model = ModelWrapper("meta-llama/Llama-2-8b-hf", load_in_8bit=True)
+model = ModelWrapper("meta-llama/Llama-2-7b-hf", load_in_8bit=True)
 
 # Create claim with negation (needed for CCS)
 claim = Claim(
@@ -78,7 +78,7 @@ Simplest baseline - prompts model to output a credence value and parses the resp
 ```python
 from belief_credence import DirectPrompting, Claim
 
-method = DirectPrompting(model_name="meta-llama/Llama-2-8b-hf")
+method = DirectPrompting(model_name="meta-llama/Llama-2-7b-hf")
 claim = Claim(statement="Python is a programming language.")
 estimate = method.estimate(claim)
 print(estimate.p_true)  # e.g., 0.95
@@ -90,7 +90,7 @@ Analyzes token probabilities for "True" and "False" tokens.
 ```python
 from belief_credence import LogitGap, Claim
 
-method = LogitGap(model_name="meta-llama/Llama-2-8b-hf")
+method = LogitGap(model_name="meta-llama/Llama-2-7b-hf")
 claim = Claim(statement="The Earth is flat.")
 estimate = method.estimate(claim)
 print(estimate.p_true)  # e.g., 0.02
@@ -107,10 +107,10 @@ Trains a linear probe to find the model's internal belief direction from contras
 from belief_credence import CCS, Claim
 
 # Use logit gap to determine direction (default)
-method = CCS(model_name="meta-llama/Llama-2-8b-hf", layer=-1, direction_method="logit_gap")
+method = CCS(model_name="meta-llama/Llama-2-7b-hf", layer=-1, direction_method="logit_gap")
 
 # Or use self-labeling (asks model which statement is true)
-# method = CCS(model_name="meta-llama/Llama-2-8b-hf", layer=-1, direction_method="self_label")
+# method = CCS(model_name="meta-llama/Llama-2-7b-hf", layer=-1, direction_method="self_label")
 
 # Train on multiple claims with negations
 training_claims = [
@@ -135,7 +135,7 @@ from belief_credence import search_best_layer, get_dataset, BeliefType
 from belief_credence.model_utils import ModelWrapper
 
 # Load model
-model = ModelWrapper("meta-llama/Llama-2-8b-hf", load_in_8bit=True)
+model = ModelWrapper("meta-llama/Llama-2-7b-hf", load_in_8bit=True)
 
 # Get training data
 claim_sets = get_dataset(BeliefType.WELL_ESTABLISHED_FACT)
@@ -164,7 +164,7 @@ Estimates model uncertainty/confidence using hallucination detection probes.
 ```python
 from belief_credence import HallucinationProbe, Claim
 
-probe = HallucinationProbe(model_name="meta-llama/Llama-2-8b-hf", layer=-1)
+probe = HallucinationProbe(model_name="meta-llama/Llama-2-7b-hf", layer=-1)
 
 claim = Claim(statement="Barack Obama was born in Hawaii.")
 uncertainty = probe.estimate_uncertainty(claim)
@@ -393,7 +393,7 @@ from belief_credence import (
 from belief_credence.model_utils import ModelWrapper
 
 # Load model
-model = ModelWrapper("meta-llama/Llama-2-8b-hf", load_in_8bit=True)
+model = ModelWrapper("meta-llama/Llama-2-7b-hf", load_in_8bit=True)
 
 # Initialize methods
 methods = [
@@ -422,9 +422,9 @@ from belief_credence import load_estimates, compare_saved_estimates
 
 # Load estimates from saved files
 estimate_files = [
-    "outputs/well_established_facts/direct_prompting_Llama-2-8b-hf.json",
-    "outputs/well_established_facts/logit_gap_Llama-2-8b-hf.json",
-    "outputs/well_established_facts/ccs_Llama-2-8b-hf_layer-1.json",
+    "outputs/well_established_facts/direct_prompting_Llama-2-7b-hf.json",
+    "outputs/well_established_facts/logit_gap_Llama-2-7b-hf.json",
+    "outputs/well_established_facts/ccs_Llama-2-7b-hf_layer-1.json",
 ]
 
 comparison = compare_saved_estimates(estimate_files)

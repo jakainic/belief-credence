@@ -21,7 +21,7 @@ from belief_credence.model_utils import ModelWrapper
 
 def main() -> None:
     print("Loading model...")
-    model = ModelWrapper("meta-llama/Llama-2-8b-hf", load_in_8bit=True)
+    model = ModelWrapper("meta-llama/Llama-2-7b-hf", load_in_8bit=True)
 
     claims = [
         Claim(

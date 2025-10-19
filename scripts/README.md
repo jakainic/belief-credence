@@ -31,7 +31,7 @@ python scripts/run_evaluation.py
 ```
 
 This will:
-- Load Llama-2-8b-hf (8-bit quantization)
+- Load Llama-2-7b-hf (8-bit quantization)
 - Train CCS probe on well-established facts
 - Evaluate all 3 methods on contested facts
 - Time each method separately
@@ -87,9 +87,9 @@ Runs full evaluation pipeline with timing.
 **Output:**
 ```
 outputs/runpod_evaluation/
-├── direct_prompting_Llama-2-8b-hf.json
-├── logit_gap_Llama-2-8b-hf.json
-└── ccs_Llama-2-8b-hf_layer-1.json
+├── direct_prompting_Llama-2-7b-hf.json
+├── logit_gap_Llama-2-7b-hf.json
+└── ccs_Llama-2-7b-hf_layer-1.json
 ```
 
 ### `generate_plots.py`

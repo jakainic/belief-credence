@@ -134,14 +134,14 @@ This ensures outputs are comparable across methods - every method returns a stan
 
 ### Model Integration
 
-The library supports any HuggingFace model. Default is Llama-2-8b-hf, but you can use:
+The library supports any HuggingFace model. Default is Llama-2-7b-hf, but you can use:
 - `meta-llama/Llama-2-70b-hf` for larger model
 - `meta-llama/Meta-Llama-3-8B` for Llama 3
 - Any other CausalLM model on HuggingFace
 
 All methods can share the same `ModelWrapper` instance to avoid loading multiple times:
 ```python
-model = ModelWrapper("meta-llama/Llama-2-8b-hf", load_in_8bit=True)
+model = ModelWrapper("meta-llama/Llama-2-7b-hf", load_in_8bit=True)
 method1 = DirectPrompting(model=model)
 method2 = LogitGap(model=model)
 ```

@@ -25,7 +25,7 @@ def main() -> None:
     print("=" * 80)
 
     print("\nLoading model...")
-    model = ModelWrapper("meta-llama/Llama-2-8b-hf", load_in_8bit=True)
+    model = ModelWrapper("meta-llama/Llama-2-7b-hf", load_in_8bit=True)
 
     # Step 1: Train CCS
     print("\nTraining CCS probe...")

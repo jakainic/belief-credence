@@ -18,7 +18,7 @@ class DirectPrompting(CredenceMethod):
     def __init__(
         self,
         model: ModelWrapper | None = None,
-        model_name: str = "meta-llama/Llama-2-8b-hf",
+        model_name: str = "meta-llama/Llama-2-7b-hf",
         temperature: float = 0.0,
     ):
         """Initialize the direct prompting method.
