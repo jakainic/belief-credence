@@ -1,12 +1,16 @@
 """Utilities for extracting and comparing credence signals from LLMs."""
 
 from belief_credence.core import Claim, CredenceEstimate, CredenceMethod
-from belief_credence.ccs import CCS
+from belief_credence.ccs import CCS, LayerSearchResult, search_best_layer
 from belief_credence.logit_gap import LogitGap
-from belief_credence.hallucination_probe import HallucinationProbe
 from belief_credence.prompting import DirectPrompting
 from belief_credence.comparison import MethodComparison, compare_methods, compare_on_dataset
 from belief_credence.model_utils import ModelWrapper
+from belief_credence.uncertainty import (
+    HallucinationProbe,
+    UncertaintyEstimate,
+    check_credence_uncertainty_alignment,
+)
 from belief_credence.epistemology import (
     ConsistencyCheck,
     CoherenceCheck,
@@ -34,17 +38,26 @@ from belief_credence.datasets import (
 )
 
 __all__ = [
+    # Core
     "Claim",
     "CredenceEstimate",
     "CredenceMethod",
+    # Credence methods (3 direct methods)
     "CCS",
+    "LayerSearchResult",
+    "search_best_layer",
     "LogitGap",
-    "HallucinationProbe",
     "DirectPrompting",
+    # Uncertainty estimation (not a direct credence method)
+    "HallucinationProbe",
+    "UncertaintyEstimate",
+    "check_credence_uncertainty_alignment",
+    # Comparison utilities
     "MethodComparison",
     "ModelWrapper",
     "compare_methods",
     "compare_on_dataset",
+    # Epistemology checks
     "ConsistencyCheck",
     "CoherenceCheck",
     "BayesianConditioningCheck",
@@ -55,6 +68,7 @@ __all__ = [
     "check_bayesian_conditioning",
     "check_action_correlation",
     "evaluate_epistemology",
+    # Datasets
     "BeliefType",
     "ClaimSet",
     "get_dataset",

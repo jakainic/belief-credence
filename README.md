@@ -4,14 +4,15 @@ Research library for extracting and comparing credence signals from frontier LLM
 
 ## Overview
 
-This library implements four different methods for estimating P(True) for claims, allowing you to compare how different approaches detect credence/belief signals in language models:
+This library implements three different methods for estimating P(True) for claims, allowing you to compare how different approaches detect credence/belief signals in language models:
 
 1. **Direct Prompting**: Ask the model directly for a credence value (0-1)
 2. **Logit Gap**: Extract P("True")/P("False") token probabilities ([Kadavath et al. 2022](https://arxiv.org/abs/2207.05221))
 3. **CCS (Contrast Consistent Search)**: Find truth direction from statement/negation pairs ([Burns et al. 2022](https://arxiv.org/abs/2212.03827))
-4. **Hallucination Probes**: Use uncertainty detection as credence signal ([hallucination-probes.com](https://www.hallucination-probes.com/))
 
 All methods output a standardized `CredenceEstimate` with `p_true` between 0 and 1, making results directly comparable.
+
+Additionally, the library includes **uncertainty estimation** via hallucination probes to assess model confidence (not a direct credence method, but useful for validation).
 
 ## Installation
 
@@ -120,22 +121,56 @@ print(estimate.p_true)
 print(estimate.metadata["consistency_score"])  # Lower is better
 ```
 
-### Hallucination Probe
-Uses linear probe on hidden states to detect hallucinations as uncertainty signal.
+#### Layer Search for CCS
+The layer hyperparameter can significantly impact CCS performance. Use `search_best_layer()` to find the optimal layer:
+
+```python
+from belief_credence import search_best_layer, get_dataset, BeliefType
+from belief_credence.model_utils import ModelWrapper
+
+# Load model
+model = ModelWrapper("meta-llama/Llama-2-8b-hf", load_in_8bit=True)
+
+# Get training data
+claim_sets = get_dataset(BeliefType.WELL_ESTABLISHED_FACT)
+training_claims = [cs.to_claims()[0] for cs in claim_sets]
+
+# Search layers -1 through -5
+result = search_best_layer(
+    model=model,
+    training_claims=training_claims,
+    layers=[-1, -2, -3, -4, -5]
+)
+
+print(f"Best layer: {result.layer}")
+print(f"Consistency score: {result.consistency_score:.3f}")
+
+# Use the best layer
+method = CCS(model=model, layer=result.layer)
+method._probe = result.probe  # Use the trained probe
+```
+
+### Uncertainty Estimation (Hallucination Probes)
+Estimates model uncertainty/confidence using hallucination detection probes.
+**Note:** This provides uncertainty scores, not direct P(True) estimates.
 
 ```python
 from belief_credence import HallucinationProbe, Claim
 
-method = HallucinationProbe(model_name="meta-llama/Llama-2-8b-hf", layer=-1)
+probe = HallucinationProbe(model_name="meta-llama/Llama-2-8b-hf", layer=-1)
 
-# Option 1: Use with random initialization (demo only)
 claim = Claim(statement="Barack Obama was born in Hawaii.")
-estimate = method.estimate(claim)
+uncertainty = probe.estimate_uncertainty(claim)
 
-# Option 2: Load pretrained probe (recommended)
-method.load_pretrained_probe("path/to/probe.pt")
-estimate = method.estimate(claim)
-print(estimate.p_true)  # 1 - P(hallucination)
+print(f"Uncertainty: {uncertainty.uncertainty_score:.3f}")
+print(f"Confidence: {uncertainty.confidence_score:.3f}")
+
+# Check if a credence estimate aligns with uncertainty
+from belief_credence import check_credence_uncertainty_alignment
+
+p_true = 0.95  # from another method
+is_aligned = check_credence_uncertainty_alignment(p_true, uncertainty)
+print(f"Aligned: {is_aligned}")  # High p_true should have low uncertainty
 ```
 
 ## Development

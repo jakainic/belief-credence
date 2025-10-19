@@ -2,8 +2,9 @@
 
 This script shows how to:
 1. Create claims with negations
-2. Run all four credence methods
+2. Run all three credence methods
 3. Compare results across methods
+4. Use uncertainty estimation for validation
 """
 
 from belief_credence import (
@@ -12,6 +13,7 @@ from belief_credence import (
     DirectPrompting,
     HallucinationProbe,
     LogitGap,
+    check_credence_uncertainty_alignment,
     compare_methods,
 )
 from belief_credence.model_utils import ModelWrapper
@@ -36,19 +38,22 @@ def main() -> None:
         ),
     ]
 
-    print("\nInitializing methods...")
+    print("\nInitializing credence methods...")
     methods = [
         DirectPrompting(model=model),
         LogitGap(model=model),
         CCS(model=model),
-        HallucinationProbe(model=model),
     ]
+
+    print("Initializing uncertainty probe...")
+    uncertainty_probe = HallucinationProbe(model=model)
 
     for claim in claims:
         print(f"\n{'=' * 80}")
         print(f"Claim: {claim.statement}")
         print(f"{'=' * 80}")
 
+        # Compare credence methods
         comparison = compare_methods(claim, methods)
 
         for method_name, estimate in comparison.estimates.items():
@@ -62,6 +67,19 @@ def main() -> None:
         print(f"  Std Dev: {comparison.std_p_true():.3f}")
         p_min, p_max = comparison.range_p_true()
         print(f"  Range: [{p_min:.3f}, {p_max:.3f}]")
+
+        # Check uncertainty alignment
+        print(f"\nUncertainty Analysis:")
+        uncertainty = uncertainty_probe.estimate_uncertainty(claim)
+        print(f"  Uncertainty: {uncertainty.uncertainty_score:.3f}")
+        print(f"  Confidence: {uncertainty.confidence_score:.3f}")
+
+        mean_p_true = comparison.mean_p_true()
+        is_aligned = check_credence_uncertainty_alignment(mean_p_true, uncertainty)
+        print(
+            f"  Aligned with mean credence? {is_aligned} "
+            f"(mean P(True)={mean_p_true:.3f})"
+        )
 
 
 if __name__ == "__main__":

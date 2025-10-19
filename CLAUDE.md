@@ -4,12 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a research project for extracting and comparing credence signals from frontier LLMs. We implement four different methods to estimate P(True) for claims and compare their outputs:
+This is a research project for extracting and comparing credence signals from frontier LLMs. We implement three different methods to estimate P(True) for claims and compare their outputs:
 
-1. **CCS (Contrast Consistent Search)**: Discovers truth direction from statement/negation pairs
+1. **Direct Prompting**: Baseline method asking model for credence 0-1
 2. **Logit Gap**: Analyzes P(True)/P(False) token probabilities
-3. **Hallucination Probes**: Uses uncertainty detection as credence signal
-4. **Direct Prompting**: Baseline method asking model for credence 0-1
+3. **CCS (Contrast Consistent Search)**: Discovers truth direction from statement/negation pairs
+
+Additionally, we provide uncertainty estimation (hallucination probes) for validating credence estimates.
 
 ## Development Setup
 
@@ -66,6 +67,12 @@ python examples/compare_methods.py
 
 # Evaluate epistemological properties
 python examples/evaluate_epistemology.py
+
+# Search for best CCS layer
+python examples/ccs_layer_search.py
+
+# Comprehensive evaluation with datasets
+python examples/evaluate_with_datasets.py
 ```
 
 ## Architecture
@@ -84,11 +91,17 @@ python examples/evaluate_epistemology.py
     - Hidden state extraction from any layer
     - Contrast pair activation extraction
 
-- **Method Implementations** (all functional):
+- **Credence Method Implementations** (3 methods):
   - `prompting.py`: Direct prompting - asks model for credence, parses numeric response
   - `logit_gap.py`: Extracts P("True")/P("False") token probabilities and normalizes
   - `ccs.py`: Trains linear probe on contrast pairs with consistency loss
-  - `hallucination_probe.py`: Linear probe on hidden states (simplified version)
+    - Includes `search_best_layer()` utility for hyperparameter tuning
+    - Finds optimal layer by comparing consistency scores across layers
+
+- **`uncertainty.py`**: Uncertainty/confidence estimation (not a direct credence method)
+  - `HallucinationProbe`: Linear probe on hidden states for uncertainty estimation
+  - `UncertaintyEstimate`: Returns uncertainty_score and confidence_score
+  - `check_credence_uncertainty_alignment()`: Validates credence vs uncertainty
 
 - **`comparison.py`**: Utilities for running and comparing multiple methods
   - `compare_methods()`: Run all methods on one claim
@@ -136,7 +149,9 @@ method2 = LogitGap(model=model)
 ### Completed
 - ✓ Core architecture with `Claim`, `CredenceEstimate`, `CredenceMethod`
 - ✓ Model loading and activation extraction infrastructure
-- ✓ All four credence methods implemented and functional
+- ✓ Three credence estimation methods (Direct Prompting, Logit Gap, CCS)
+- ✓ CCS layer search utility for hyperparameter tuning
+- ✓ Uncertainty estimation via hallucination probes (separate from credence methods)
 - ✓ Comparison utilities for evaluating multiple methods
 - ✓ Epistemological property evaluation:
   - Logical consistency (P(T) + P(F) ≈ 1)
@@ -147,15 +162,15 @@ method2 = LogitGap(model=model)
   - 18 claim sets across 6 belief categories
   - 4 phrasings per claim for coherence testing
   - Well-established facts, contested facts, predictions, normative/metaphysical
-- ✓ Example scripts (method comparison, epistemology, datasets)
+- ✓ Example scripts (method comparison, epistemology, datasets, CCS layer search)
 - ✓ Comprehensive unit tests
 
 ### Next Steps
 To improve the methods, consider:
-1. **CCS**: Add more sophisticated training with multiple contrast pairs
-2. **Hallucination Probe**: Integrate pretrained probes from `github.com/obalcells/hallucination_probes`
-3. **Logit Gap**: Experiment with different prompt formats (e.g., "Is the following true or false:")
-4. **All Methods**: Test on real datasets and tune hyperparameters
+1. **Hallucination Probe**: Integrate pretrained probes from `github.com/obalcells/hallucination_probes`
+2. **Logit Gap**: Experiment with different prompt formats (e.g., "Is the following true or false:")
+3. **All Methods**: Test on real datasets and tune hyperparameters
+4. **Evaluation**: Run comprehensive benchmarks across all belief categories
 
 ## External Code References
 
