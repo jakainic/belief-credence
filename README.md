@@ -268,6 +268,72 @@ print(f"Overall epistemology: {report.overall_epistemology_score:.3f}")
 
 See `examples/evaluate_epistemology.py` for a complete example.
 
+## Curated Datasets
+
+The library includes curated datasets of contrastive claim pairs across six belief categories, each with multiple phrasings to test consistency and coherence:
+
+### Belief Categories
+
+1. **Well-Established Facts** - Scientific and geographic facts with strong consensus
+   - Example: "The Earth orbits around the Sun" (4 phrasings)
+
+2. **Contested Facts** - Empirical claims with ongoing debate
+   - Example: "Human activity is the primary cause of recent global warming" (4 phrasings)
+
+3. **Certain Predictions** - High-confidence future events
+   - Example: "The Sun will rise tomorrow morning" (4 phrasings)
+
+4. **Uncertain Predictions** - Speculative future events
+   - Example: "Artificial general intelligence will be developed by 2050" (4 phrasings)
+
+5. **Normative Judgments** - Moral and political value claims
+   - Example: "Lying is morally wrong" (4 phrasings)
+
+6. **Metaphysical Beliefs** - Philosophical positions
+   - Example: "Free will exists" (4 phrasings)
+
+### Usage
+
+```python
+from belief_credence import BeliefType, get_dataset, get_all_claims
+
+# Get claims for a specific category
+well_established = get_dataset(BeliefType.WELL_ESTABLISHED_FACT)
+for claim_set in well_established:
+    print(claim_set.description)
+    print(f"  Positive: {claim_set.positive_phrasings[0]}")
+    print(f"  Negative: {claim_set.negative_phrasings[0]}")
+
+# Get all claims across categories
+all_claims = get_all_claims()
+print(f"Total claims: {len(all_claims)}")
+
+# Filter by category
+metaphysical_claims = get_all_claims(BeliefType.METAPHYSICAL_BELIEF)
+```
+
+### Evaluation with Datasets
+
+```python
+from belief_credence import evaluate_epistemology, get_dataset, BeliefType
+
+# Evaluate consistency across a belief category
+claim_sets = get_dataset(BeliefType.WELL_ESTABLISHED_FACT)
+consistency_claims = [cs.to_claims()[0] for cs in claim_sets]
+coherence_tests = [(cs.to_claims()[0], cs.positive_phrasings[1:]) for cs in claim_sets]
+
+report = evaluate_epistemology(
+    method,
+    consistency_claims=consistency_claims,
+    coherence_tests=coherence_tests
+)
+
+print(f"Consistency: {report.overall_consistency_score:.3f}")
+print(f"Coherence: {report.overall_coherence_score:.3f}")
+```
+
+See `examples/evaluate_with_datasets.py` for comprehensive examples.
+
 ## References
 
 - **CCS**: [Burns et al. 2022 - Discovering Latent Knowledge in Language Models Without Supervision](https://arxiv.org/abs/2212.03827)

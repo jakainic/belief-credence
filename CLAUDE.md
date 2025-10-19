@@ -102,6 +102,12 @@ python examples/evaluate_epistemology.py
   - `check_action_correlation()`: Internal credence vs action probability
   - `evaluate_epistemology()`: Comprehensive evaluation with report
 
+- **`datasets.py`**: Curated contrastive claim pairs
+  - Six belief categories: well-established facts, contested facts, certain/uncertain predictions, normative judgments, metaphysical beliefs
+  - Multiple phrasings per claim for coherence testing
+  - `ClaimSet`: Container for proposition with paraphrases
+  - `get_dataset()`, `get_all_claims()`: Dataset loaders
+
 ### Design Principles
 
 All methods implement the same interface:
@@ -137,7 +143,11 @@ method2 = LogitGap(model=model)
   - Coherence across paraphrases
   - Bayesian conditioning (P(A|B) ≈ P(A∧B)/P(B))
   - Action-belief correlation
-- ✓ Example scripts (method comparison & epistemology evaluation)
+- ✓ Curated datasets:
+  - 18 claim sets across 6 belief categories
+  - 4 phrasings per claim for coherence testing
+  - Well-established facts, contested facts, predictions, normative/metaphysical
+- ✓ Example scripts (method comparison, epistemology, datasets)
 - ✓ Comprehensive unit tests
 
 ### Next Steps

@@ -19,6 +19,19 @@ from belief_credence.epistemology import (
     check_action_correlation,
     evaluate_epistemology,
 )
+from belief_credence.datasets import (
+    BeliefType,
+    ClaimSet,
+    get_dataset,
+    get_all_claims,
+    get_all_claim_sets,
+    WELL_ESTABLISHED_FACTS,
+    CONTESTED_FACTS,
+    CERTAIN_PREDICTIONS,
+    UNCERTAIN_PREDICTIONS,
+    NORMATIVE_JUDGMENTS,
+    METAPHYSICAL_BELIEFS,
+)
 
 __all__ = [
     "Claim",
@@ -42,4 +55,15 @@ __all__ = [
     "check_bayesian_conditioning",
     "check_action_correlation",
     "evaluate_epistemology",
+    "BeliefType",
+    "ClaimSet",
+    "get_dataset",
+    "get_all_claims",
+    "get_all_claim_sets",
+    "WELL_ESTABLISHED_FACTS",
+    "CONTESTED_FACTS",
+    "CERTAIN_PREDICTIONS",
+    "UNCERTAIN_PREDICTIONS",
+    "NORMATIVE_JUDGMENTS",
+    "METAPHYSICAL_BELIEFS",
 ]
