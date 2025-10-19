@@ -120,12 +120,11 @@ training_claims = [
 ]
 method.train_probe(training_claims)
 
-# Evaluate new claim
-claim = Claim("The sky is blue.", "The sky is not blue.")
+# Evaluate new claim - no negation needed after training!
+claim = Claim(statement="The sky is blue.")
 estimate = method.estimate(claim)
 print(estimate.p_true)
-print(estimate.metadata["consistency_score"])  # Lower is better
-print(estimate.metadata["direction_method"])  # Which method was used
+print(estimate.metadata["direction_method"])  # Which method was used for training
 ```
 
 #### Layer Search for CCS
@@ -376,6 +375,97 @@ print(f"Coherence: {report.overall_coherence_score:.3f}")
 ```
 
 See `examples/evaluate_with_datasets.py` for comprehensive examples.
+
+## Batch Evaluation and Saving Outputs
+
+For larger-scale experiments, you can batch evaluate methods on datasets and save outputs for later comparison:
+
+```python
+from belief_credence import (
+    DirectPrompting,
+    LogitGap,
+    CCS,
+    batch_evaluate_methods,
+    compare_saved_estimates,
+    get_dataset,
+    BeliefType,
+)
+from belief_credence.model_utils import ModelWrapper
+
+# Load model
+model = ModelWrapper("meta-llama/Llama-2-8b-hf", load_in_8bit=True)
+
+# Initialize methods
+methods = [
+    DirectPrompting(model=model),
+    LogitGap(model=model),
+    CCS(model=model, direction_method="logit_gap"),
+]
+
+# Get claims from dataset
+claim_sets = get_dataset(BeliefType.WELL_ESTABLISHED_FACT)
+claims = [cs.to_claims()[0] for cs in claim_sets]
+
+# Evaluate all methods and save to JSON files
+results = batch_evaluate_methods(
+    methods,
+    claims,
+    output_dir="outputs/well_established_facts"
+)
+# Creates: outputs/well_established_facts/{method_name}.json for each method
+```
+
+### Loading and Comparing Saved Results
+
+```python
+from belief_credence import load_estimates, compare_saved_estimates
+
+# Load estimates from saved files
+estimate_files = [
+    "outputs/well_established_facts/direct_prompting_Llama-2-8b-hf.json",
+    "outputs/well_established_facts/logit_gap_Llama-2-8b-hf.json",
+    "outputs/well_established_facts/ccs_Llama-2-8b-hf_layer-1.json",
+]
+
+comparison = compare_saved_estimates(estimate_files)
+
+# View per-claim comparisons
+for comp in comparison["comparisons"]:
+    print(f"Claim: {comp['statement']}")
+    for method, p_true in comp["estimates"].items():
+        print(f"  {method}: {p_true:.3f}")
+```
+
+### Method Independence
+
+**All methods** can evaluate single statements independently once initialized:
+
+```python
+# No negations needed for evaluation!
+claim = Claim(statement="The Earth is round.")
+
+# All three methods work
+estimate1 = DirectPrompting(model=model).estimate(claim)
+estimate2 = LogitGap(model=model).estimate(claim)
+estimate3 = trained_ccs.estimate(claim)  # CCS must be trained first
+```
+
+**CCS Training**: CCS requires statement/negation pairs only during training:
+```python
+# Training requires negations
+training_claims = [
+    Claim("Earth is round.", "Earth is not round."),
+    Claim("Water is wet.", "Water is not wet."),
+]
+ccs = CCS(model=model, direction_method="logit_gap")
+ccs.train_probe(training_claims)
+
+# After training, evaluation doesn't need negations!
+claim = Claim(statement="The sky is blue.")  # No negation needed
+estimate = ccs.estimate(claim)
+```
+
+See `examples/batch_evaluate_and_save.py` and `METHOD_DEPENDENCIES.md` for more details.
 
 ## References
 

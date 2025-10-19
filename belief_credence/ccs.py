@@ -133,56 +133,39 @@ Answer:"""
     def estimate(self, claim: Claim) -> CredenceEstimate:
         """Estimate P(True) using CCS probe.
 
-        The probe outputs P(model believes statement is true). We use the
-        direction method to determine if we need to evaluate the statement
-        or its negation.
+        Once trained, the probe can evaluate single statements independently.
+        No negation required - the probe already learned the correct direction
+        during training.
 
         Args:
-            claim: The claim to evaluate (must have negation)
+            claim: The claim to evaluate
 
         Returns:
             CredenceEstimate with CCS-based p_true
         """
-        if claim.negation is None:
-            raise ValueError("CCS requires claim negation to be provided")
-
         if self._probe is None:
+            if claim.negation is None:
+                raise ValueError(
+                    "CCS probe not trained. Either train_probe() first or "
+                    "provide claim with negation for automatic training."
+                )
             self.train_probe([claim])
 
-        # Determine which statement the model believes
-        model_believes_positive = self._get_model_belief(claim)
+        # Get activations for just the statement
+        hidden = self.model.get_hidden_states(claim.statement, self.layer)
+        hidden_mean = hidden.mean(dim=0).unsqueeze(0)
 
-        pos_hidden, neg_hidden = self.model.get_contrast_activations(
-            claim.statement, claim.negation, self.layer
-        )
-
-        pos_hidden_mean = pos_hidden.mean(dim=0).unsqueeze(0)
-        neg_hidden_mean = neg_hidden.mean(dim=0).unsqueeze(0)
-
+        # Apply trained probe
         with torch.no_grad():
-            # Probe outputs P(model believes this statement)
-            # So we need to apply it to the statement the model believes
-            if model_believes_positive:
-                p_believed = self._probe(pos_hidden_mean).item()
-                p_disbelieved = self._probe(neg_hidden_mean).item()
-                p_true = p_believed  # Model believes positive statement
-            else:
-                p_believed = self._probe(neg_hidden_mean).item()
-                p_disbelieved = self._probe(pos_hidden_mean).item()
-                p_true = 1.0 - p_believed  # Model believes negative statement
+            p_true = self._probe(hidden_mean).item()
 
         return CredenceEstimate(
             p_true=p_true,
             method=self.name,
             claim=claim,
-            raw_output={
-                "p_believed": p_believed,
-                "p_disbelieved": p_disbelieved,
-                "model_believes_positive": model_believes_positive,
-            },
+            raw_output={"p_true": p_true},
             metadata={
                 "layer": self.layer,
-                "consistency_score": abs(p_believed + p_disbelieved - 1.0),
                 "direction_method": self.direction_method,
             },
         )

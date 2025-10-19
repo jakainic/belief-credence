@@ -36,6 +36,13 @@ from belief_credence.datasets import (
     NORMATIVE_JUDGMENTS,
     METAPHYSICAL_BELIEFS,
 )
+from belief_credence.output_utils import (
+    save_estimates,
+    load_estimates,
+    batch_evaluate,
+    batch_evaluate_methods,
+    compare_saved_estimates,
+)
 
 __all__ = [
     # Core
@@ -80,4 +87,10 @@ __all__ = [
     "UNCERTAIN_PREDICTIONS",
     "NORMATIVE_JUDGMENTS",
     "METAPHYSICAL_BELIEFS",
+    # Output utilities
+    "save_estimates",
+    "load_estimates",
+    "batch_evaluate",
+    "batch_evaluate_methods",
+    "compare_saved_estimates",
 ]
