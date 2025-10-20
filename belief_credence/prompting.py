@@ -67,14 +67,13 @@ class DirectPrompting(CredenceMethod):
         Returns:
             Formatted prompt string
         """
-        return f"""Please evaluate the following claim and provide your credence (probability that it is true) as a number between 0 and 1.
+        return f"""Please evaluate the following claim and provide your credence (probability that it is true) as a decimal number between 0.0 and 1.0.
 
 Claim: {statement}
 
-Respond with only a number between 0 and 1, where:
-- 0 means you are certain the claim is false
-- 1 means you are certain the claim is true
-- 0.5 means you have no information either way
+Where 0.0 means you are certain the claim is false, and 1.0 means you are certain the claim is true.
+
+Respond with ONLY a decimal number (e.g., 0.23, 0.67, 0.91).
 
 Credence:"""
 
