@@ -13,7 +13,7 @@ from typing import Dict, List
 import numpy as np
 
 from belief_credence.core import CredenceEstimate, Claim
-from belief_credence.datasets import BeliefType
+from belief_credence.datasets import BeliefType, ClaimSet, get_all_claim_sets
 
 
 @dataclass
@@ -27,6 +27,7 @@ class ValidationMetrics:
         negation_consistency: Average |P(A) + P(¬A) - 1| across claims
         phrasing_coherence: Average std dev across paraphrases of same claim
         expected_pattern_score: How well the method matches expected patterns
+        num_coherence_sets: Number of ClaimSets tested for coherence
     """
 
     method_name: str
@@ -35,6 +36,7 @@ class ValidationMetrics:
     negation_consistency: float | None = None
     phrasing_coherence: float | None = None
     expected_pattern_score: float | None = None
+    num_coherence_sets: int = 0
 
 
 @dataclass
@@ -56,6 +58,53 @@ class MethodComparison:
     mean_absolute_error: float
     systematic_bias: float
     agreement_rate: float
+
+
+def compute_phrasing_coherence(
+    estimates: List[CredenceEstimate],
+) -> tuple[float, int]:
+    """Compute coherence across paraphrases of the same proposition.
+
+    Args:
+        estimates: List of credence estimates to analyze
+
+    Returns:
+        Tuple of (average_std_dev, num_claim_sets_tested)
+        - average_std_dev: Mean standard deviation across paraphrases
+        - num_claim_sets_tested: Number of ClaimSets with multiple phrasings found
+    """
+    # Get all claim sets to identify paraphrases
+    all_claim_sets = get_all_claim_sets()
+
+    # Build mapping from statement to ClaimSet
+    statement_to_claim_set: Dict[str, ClaimSet] = {}
+    for cs in all_claim_sets:
+        for phrasing in cs.positive_phrasings:
+            statement_to_claim_set[phrasing] = cs
+
+    # Group estimates by ClaimSet
+    estimates_by_claim_set: Dict[str, List[float]] = {}  # description -> list of p_true values
+
+    for est in estimates:
+        statement = est.claim.statement
+        if statement in statement_to_claim_set:
+            cs = statement_to_claim_set[statement]
+            desc = cs.description
+            if desc not in estimates_by_claim_set:
+                estimates_by_claim_set[desc] = []
+            estimates_by_claim_set[desc].append(est.p_true)
+
+    # Compute std dev for each claim set (if multiple phrasings present)
+    std_devs = []
+    for desc, p_values in estimates_by_claim_set.items():
+        if len(p_values) >= 2:  # Need at least 2 phrasings
+            std_dev = np.std(p_values)
+            std_devs.append(std_dev)
+
+    if not std_devs:
+        return 0.0, 0
+
+    return np.mean(std_devs), len(std_devs)
 
 
 def validate_method(
@@ -128,11 +177,16 @@ def validate_method(
 
     expected_pattern_score = pattern_score / max_score if max_score > 0 else None
 
+    # Compute phrasing coherence
+    phrasing_coherence, num_coherence_sets = compute_phrasing_coherence(estimates)
+
     return ValidationMetrics(
         method_name=estimates[0].method if estimates else "unknown",
         mean_by_type=mean_by_type,
         std_by_type=std_by_type,
         expected_pattern_score=expected_pattern_score,
+        phrasing_coherence=phrasing_coherence if num_coherence_sets > 0 else None,
+        num_coherence_sets=num_coherence_sets,
     )
 
 
@@ -207,6 +261,12 @@ def print_validation_report(
 
         print(f"\n{method_name}:")
         print(f"  Expected Pattern Score: {metrics.expected_pattern_score:.3f}" if metrics.expected_pattern_score else "  Expected Pattern Score: N/A")
+
+        if metrics.phrasing_coherence is not None:
+            print(f"  Phrasing Coherence:     {metrics.phrasing_coherence:.3f} (tested {metrics.num_coherence_sets} claim sets)")
+        else:
+            print(f"  Phrasing Coherence:     N/A (no paraphrases in test set)")
+
         print("\n  Mean P(True) by Belief Type:")
         for belief_type, mean_val in metrics.mean_by_type.items():
             std_val = metrics.std_by_type[belief_type]
@@ -247,6 +307,15 @@ Critical Tests (must pass):
 
 Nice-to-Have Tests:
   - Contested facts: 0.4-0.6 (middling uncertainty)
+
+Phrasing Coherence (lower is better):
+  <0.05: Excellent - very consistent across paraphrases
+  0.05-0.10: Good - mostly consistent
+  0.10-0.20: Moderate - some variation
+  >0.20: Poor - inconsistent, method is sensitive to wording
+
+  Note: Only computed if test set includes multiple phrasings of same claims.
+  Standard deviation of P(True) across paraphrases of same proposition.
 
 Correlation between methods:
   >0.7: Strong agreement, likely measuring similar signal
