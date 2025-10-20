@@ -46,7 +46,7 @@ def main() -> None:
     # Step 1: Load model
     print("\n[1/6] Loading model...")
     start = time.time()
-    model = ModelWrapper("meta-llama/Llama-2-7b-hf", load_in_8bit=True)
+    model = ModelWrapper("meta-llama/Llama-2-7b-chat-hf", load_in_8bit=True)
     load_time = time.time() - start
     print(f"✓ Model loaded in {format_time(load_time)}")
 
@@ -140,7 +140,7 @@ def main() -> None:
     # Step 6: Summary
     print("\n[6/6] Summary")
     print("=" * 80)
-    print(f"\nModel: meta-llama/Llama-2-7b-hf (8-bit)")
+    print(f"\nModel: meta-llama/Llama-2-7b-chat-hf (8-bit)")
     print(f"\nData Split:")
     print(f"  Training:   {len(split.train_claims)} claims (mixed belief types)")
     print(f"  Validation: {len(split.val_claims)} claims (mixed belief types)")

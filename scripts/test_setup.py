@@ -45,7 +45,7 @@ def main() -> None:
     print("\n[2/5] Loading model (this may take ~30s)...")
     start = time.time()
     try:
-        model = ModelWrapper("meta-llama/Llama-2-7b-hf", load_in_8bit=True)
+        model = ModelWrapper("meta-llama/Llama-2-7b-chat-hf", load_in_8bit=True)
         load_time = time.time() - start
         print(f"✓ Model loaded successfully in {load_time:.1f}s")
     except Exception as e:

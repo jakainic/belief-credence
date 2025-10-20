@@ -16,7 +16,7 @@ class LogitGap(CredenceMethod):
     the logit probabilities for the "True" and "False" tokens to estimate credence.
     """
 
-    def __init__(self, model: ModelWrapper | None = None, model_name: str = "meta-llama/Llama-2-7b-hf"):
+    def __init__(self, model: ModelWrapper | None = None, model_name: str = "meta-llama/Llama-2-7b-chat-hf"):
         """Initialize the logit gap method.
 
         Args:
