@@ -53,12 +53,12 @@ def main() -> None:
     print("GENERATING COMPARISON PLOTS")
     print("=" * 80)
 
-    # Find all JSON files in input directory
+    # Find all JSON files in input directory (excluding split_info.json)
     print(f"\nLooking for estimates in: {input_dir}/")
-    json_files = list(input_dir.glob("*.json"))
+    json_files = [f for f in input_dir.glob("*.json") if f.name != "split_info.json"]
 
     if not json_files:
-        print(f"ERROR: No JSON files found in {input_dir}/")
+        print(f"ERROR: No estimate JSON files found in {input_dir}/")
         print("Make sure to run: python scripts/run_evaluation.py first")
         return
 
@@ -71,11 +71,14 @@ def main() -> None:
     estimates_by_method = {}
 
     for json_file in json_files:
-        estimates = load_estimates(json_file)
-        if estimates:
-            method_name = estimates[0].method
-            estimates_by_method[method_name] = estimates
-            print(f"  ✓ Loaded {len(estimates)} estimates from {method_name}")
+        try:
+            estimates = load_estimates(json_file)
+            if estimates:
+                method_name = estimates[0].method
+                estimates_by_method[method_name] = estimates
+                print(f"  ✓ Loaded {len(estimates)} estimates from {method_name}")
+        except (KeyError, ValueError) as e:
+            print(f"  ⚠ Skipping {json_file.name}: not an estimates file")
 
     if not estimates_by_method:
         print("ERROR: No valid estimates loaded")
