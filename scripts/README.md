@@ -120,13 +120,20 @@ Generates comparison visualizations from saved estimates.
 
 **Usage:**
 ```bash
-# Default (uses outputs/runpod_evaluation/)
+# Default (compares all methods in outputs/runpod_evaluation/)
 python scripts/generate_plots.py
 
-# Custom directories
+# Compare only chat model results
+python scripts/generate_plots.py --pattern "*chat-hf*.json"
+
+# Compare only base model results
+python scripts/generate_plots.py --pattern "*7b-hf.json" --report-name base_model
+
+# Custom directories and filtering
 python scripts/generate_plots.py \
     --input-dir path/to/estimates \
     --output-dir path/to/plots \
+    --pattern "*chat*.json" \
     --report-name my_comparison
 ```
 

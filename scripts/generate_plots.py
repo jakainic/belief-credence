@@ -8,6 +8,18 @@ Run after run_evaluation.py:
 Optional arguments:
     --input-dir PATH    Directory with saved estimates (default: outputs/runpod_evaluation)
     --output-dir PATH   Directory to save plots (default: outputs/visualizations)
+    --pattern GLOB      Filter files by pattern (default: *.json)
+    --report-name NAME  Base name for output files (default: method_comparison)
+
+Examples:
+    # Compare only chat model results
+    python scripts/generate_plots.py --pattern "*chat-hf*.json"
+
+    # Compare only base model results
+    python scripts/generate_plots.py --pattern "*7b-hf.json" --report-name base_model
+
+    # Compare all results (default)
+    python scripts/generate_plots.py
 """
 
 import argparse
@@ -44,6 +56,12 @@ def main() -> None:
         default="method_comparison",
         help="Base name for saved plot files",
     )
+    parser.add_argument(
+        "--pattern",
+        type=str,
+        default="*.json",
+        help="Glob pattern to filter estimate files (e.g., '*chat-hf*.json' or '*7b-hf.json')",
+    )
     args = parser.parse_args()
 
     input_dir = Path(args.input_dir)
@@ -56,7 +74,8 @@ def main() -> None:
 
     # Find all JSON files in input directory (excluding split_info.json)
     print(f"\nLooking for estimates in: {input_dir}/")
-    json_files = [f for f in input_dir.glob("*.json") if f.name != "split_info.json"]
+    print(f"Using pattern: {args.pattern}")
+    json_files = [f for f in input_dir.glob(args.pattern) if f.name != "split_info.json"]
 
     if not json_files:
         print(f"ERROR: No estimate JSON files found in {input_dir}/")
