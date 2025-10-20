@@ -56,6 +56,14 @@ from belief_credence.visualization import (
     plot_calibration_comparison,
     create_comparison_report,
 )
+from belief_credence.validation import (
+    ValidationMetrics,
+    MethodComparison as ValidationComparison,
+    validate_method,
+    compare_methods as validation_compare_methods,
+    print_validation_report,
+    compute_calibration_bins,
+)
 
 __all__ = [
     # Core
@@ -117,4 +125,11 @@ __all__ = [
     "plot_agreement_heatmap",
     "plot_calibration_comparison",
     "create_comparison_report",
+    # Validation
+    "ValidationMetrics",
+    "ValidationComparison",
+    "validate_method",
+    "validation_compare_methods",
+    "print_validation_report",
+    "compute_calibration_bins",
 ]

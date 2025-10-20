@@ -20,6 +20,7 @@ from belief_credence import (
     plot_claim_by_claim_comparison,
     plot_agreement_heatmap,
     plot_calibration_comparison,
+    print_validation_report,
 )
 
 
@@ -104,6 +105,10 @@ def main() -> None:
     print("\nGenerated files:")
     for plot_file in sorted(output_dir.glob("*.png")):
         print(f"  - {plot_file.name}")
+
+    # Generate validation report
+    print("\n" + "=" * 80)
+    print_validation_report(estimates_by_method, agreement_threshold=0.15)
 
     # Print summary statistics
     print("\n" + "=" * 80)

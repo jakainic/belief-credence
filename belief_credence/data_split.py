@@ -103,6 +103,7 @@ def create_mixed_split(
             claims.append(Claim(
                 statement=cs.positive_phrasings[0],
                 negation=cs.negative_phrasings[0],
+                metadata={"belief_type": cs.belief_type, "description": cs.description},
             ))
         return claims
 
