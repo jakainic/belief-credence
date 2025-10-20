@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from belief_credence.core import Claim, CredenceEstimate, CredenceMethod
+from belief_credence.datasets import BeliefType
 
 
 def estimate_to_dict(estimate: CredenceEstimate) -> dict[str, Any]:
@@ -19,13 +20,22 @@ def estimate_to_dict(estimate: CredenceEstimate) -> dict[str, Any]:
     Returns:
         Dictionary representation
     """
+    # Convert metadata to JSON-serializable format
+    claim_metadata = {}
+    if estimate.claim.metadata:
+        for key, value in estimate.claim.metadata.items():
+            if isinstance(value, BeliefType):
+                claim_metadata[key] = value.value  # Convert enum to string
+            else:
+                claim_metadata[key] = value
+
     return {
         "p_true": estimate.p_true,
         "method": estimate.method,
         "claim": {
             "statement": estimate.claim.statement,
             "negation": estimate.claim.negation,
-            "metadata": estimate.claim.metadata,
+            "metadata": claim_metadata,
         },
         "raw_output": estimate.raw_output,
         "metadata": estimate.metadata,
@@ -41,10 +51,20 @@ def dict_to_estimate(data: dict[str, Any]) -> CredenceEstimate:
     Returns:
         CredenceEstimate object
     """
+    # Convert metadata back from JSON format
+    claim_metadata = {}
+    raw_metadata = data["claim"].get("metadata", {})
+    for key, value in raw_metadata.items():
+        if key == "belief_type" and isinstance(value, str):
+            # Convert string back to BeliefType enum
+            claim_metadata[key] = BeliefType(value)
+        else:
+            claim_metadata[key] = value
+
     claim = Claim(
         statement=data["claim"]["statement"],
         negation=data["claim"].get("negation"),
-        metadata=data["claim"].get("metadata", {}),
+        metadata=claim_metadata,
     )
 
     return CredenceEstimate(
