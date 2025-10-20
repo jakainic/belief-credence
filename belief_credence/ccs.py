@@ -216,7 +216,9 @@ Answer:"""
         X_neg = torch.stack(activations_neg)
 
         input_dim = X_pos.shape[1]
-        self._probe = CCSProbe(input_dim).to(X_pos.dtype).to(self.model.device)
+        # Create probe and move to same device and dtype as activations
+        self._probe = CCSProbe(input_dim)
+        self._probe = self._probe.to(device=self.model.device, dtype=X_pos.dtype)
 
         optimizer = torch.optim.Adam(self._probe.parameters(), lr=lr)
 
