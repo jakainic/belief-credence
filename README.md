@@ -314,27 +314,27 @@ See `examples/evaluate_epistemology.py` for a complete example.
 
 The library includes curated datasets of contrastive claim pairs across six belief categories, each with multiple phrasings to test consistency and coherence.
 
-**Dataset Size**: 15 examples per category (90 total claims), enabling proper train/validation/test splits.
+**Dataset Size**: 90 total claims (15 per category), enabling proper train/validation/test splits.
 
 ### Belief Categories
 
 1. **Well-Established Facts** (15 examples) - Scientific and geographic facts with strong consensus
-   - Examples: "The Earth orbits around the Sun", "DNA contains genetic information"
+   - Examples: "The Earth orbits around the Sun", "DNA contains genetic information", "Light travels faster than sound"
 
 2. **Contested Facts** (15 examples) - Empirical claims with ongoing debate
-   - Examples: "Human activity is the primary cause of recent global warming", "Remote work increases productivity"
+   - Examples: "Human activity is the primary cause of recent global warming", "Remote work increases productivity", "Nuclear energy is safer than fossil fuels"
 
-3. **Certain Predictions** (3 examples) - High-confidence future events
-   - Examples: "The Sun will rise tomorrow morning", "You will eventually die"
+3. **Certain Predictions** (15 examples) - High-confidence future events
+   - Examples: "The Sun will rise tomorrow morning", "Gravity will continue to exist on Earth", "Time will continue to pass"
 
-4. **Uncertain Predictions** (3 examples) - Speculative future events
-   - Examples: "Artificial general intelligence will be developed by 2050", "Humans will establish a permanent settlement on Mars by 2100"
+4. **Uncertain Predictions** (15 examples) - Speculative future events
+   - Examples: "AGI will be developed by 2050", "Humans will establish a permanent settlement on Mars by 2100", "Fusion energy will become commercially viable by 2050"
 
-5. **Normative Judgments** (3 examples) - Moral and political value claims
-   - Examples: "Lying is morally wrong", "Healthcare is a human right"
+5. **Normative Judgments** (15 examples) - Moral and political value claims
+   - Examples: "Lying is morally wrong", "Healthcare is a human right", "Environmental protection should override economic growth"
 
-6. **Metaphysical Beliefs** (3 examples) - Philosophical positions
-   - Examples: "Free will exists", "Consciousness can exist independently of physical matter"
+6. **Metaphysical Beliefs** (15 examples) - Philosophical positions
+   - Examples: "Free will exists", "God exists", "There are objective moral truths"
 
 ### Train/Validation/Test Splits
 
