@@ -84,10 +84,11 @@ def main() -> None:
     print("\n[4/6] Validating on validation set...")
     print(f"Using validation set with {len(split.val_claims)} claims for sanity check")
 
-    # Step 5: Evaluate each method on TEST set
-    print("\n[5/6] Evaluating methods on test set...")
+    # Step 5: Evaluate ALL methods on the SAME test set
+    print("\n[5/6] Evaluating all methods on the same test set...")
     print("-" * 80)
     print(f"Test set: {len(split.test_claims)} claims")
+    print("Note: All methods evaluated on identical test claims for fair comparison")
     print()
 
     methods = [
@@ -123,11 +124,12 @@ def main() -> None:
         timings[method_name] = eval_time
         results[method_name] = estimates
 
-        # Save estimates
+        # Save estimates with metadata about the split
         output_file = output_dir / f"{method.name}.json"
         save_estimates(estimates, output_file)
         print(f"✓ {method_name} complete in {format_time(eval_time)}")
         print(f"  Saved to: {output_file}")
+        print(f"  Evaluated on: {len(estimates)} test claims (seed=42)")
 
         # Quick stats
         p_values = [est.p_true for est in estimates]
@@ -154,11 +156,31 @@ def main() -> None:
     total_time = load_time + train_time + sum(timings.values())
     print(f"\n  Total runtime:      {format_time(total_time)}")
 
+    # Save split information for reproducibility
+    import json
+    split_info = {
+        "seed": 42,
+        "split_ratios": {"train": 0.6, "val": 0.2, "test": 0.2},
+        "split_sizes": {
+            "train": len(split.train_claims),
+            "val": len(split.val_claims),
+            "test": len(split.test_claims),
+        },
+        "test_claims": [claim.statement for claim in split.test_claims],
+        "train_claims": [claim.statement for claim in split.train_claims],
+        "val_claims": [claim.statement for claim in split.val_claims],
+    }
+    with open(output_dir / "split_info.json", "w") as f:
+        json.dump(split_info, f, indent=2)
+
     print(f"\n✓ All outputs saved to: {output_dir}/")
+    print(f"✓ Split information saved to: {output_dir / 'split_info.json'}")
     print("\nNext steps:")
     print("  1. Run: python scripts/generate_plots.py")
     print("  2. Download outputs/ folder to view results")
-    print("\nNote: Results are from TEST set. Validation set available for hyperparameter tuning.")
+    print("\nNote: All methods evaluated on SAME test set (seed=42).")
+    print("      CCS trained on separate training set.")
+    print("      Validation set available for hyperparameter tuning.")
 
     print("\n" + "=" * 80)
 

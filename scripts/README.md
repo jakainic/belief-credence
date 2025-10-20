@@ -88,9 +88,9 @@ Runs full evaluation pipeline with proper train/validation/test split.
 - Prints summary statistics and split details
 
 **Data Split Strategy:**
-- **Training (60%)**: Mixed belief types for CCS probe training
-- **Validation (20%)**: Mixed belief types for hyperparameter tuning
-- **Test (20%)**: Mixed belief types for final evaluation
+- **Training (60%)**: ~54 claims - Mixed belief types for CCS probe training
+- **Validation (20%)**: ~18 claims - Mixed belief types for hyperparameter tuning
+- **Test (20%)**: ~18 claims - Mixed belief types for final evaluation
 - All splits contain a representative mix of:
   - Well-established facts
   - Contested facts
@@ -99,12 +99,19 @@ Runs full evaluation pipeline with proper train/validation/test split.
   - Normative judgments
   - Metaphysical beliefs
 
+**Important: Fair Comparison**
+- All three methods are evaluated on the **EXACT SAME test set**
+- CCS trains on training set, DirectPrompting and LogitGap don't need training
+- Same test claims ensure fair, apples-to-apples comparison
+- Split is deterministic (seed=42) for reproducibility
+
 **Output:**
 ```
 outputs/runpod_evaluation/
 ├── direct_prompting_Llama-2-7b-hf.json  # Test set results
 ├── logit_gap_Llama-2-7b-hf.json         # Test set results
-└── ccs_Llama-2-7b-hf_layer-1.json      # Test set results
+├── ccs_Llama-2-7b-hf_layer-1.json       # Test set results
+└── split_info.json                      # Documents exact train/val/test split
 ```
 
 ### `generate_plots.py`
