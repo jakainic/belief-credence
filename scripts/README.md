@@ -75,21 +75,36 @@ Quick validation script to verify everything works before running full evaluatio
 
 ### `run_evaluation.py`
 
-Runs full evaluation pipeline with timing.
+Runs full evaluation pipeline with proper train/validation/test split.
 
 **Features:**
-- Loads model once, reuses across methods
+- Creates stratified 60/20/20 train/val/test split with mixed belief types
+- Trains CCS probe on training set only
+- Evaluates all methods on held-out test set
+- Validation set available for hyperparameter tuning
 - Times each stage (model loading, CCS training, per-method evaluation)
 - Progress indicators with ETA
 - Saves estimates to JSON
-- Prints summary statistics
+- Prints summary statistics and split details
+
+**Data Split Strategy:**
+- **Training (60%)**: Mixed belief types for CCS probe training
+- **Validation (20%)**: Mixed belief types for hyperparameter tuning
+- **Test (20%)**: Mixed belief types for final evaluation
+- All splits contain a representative mix of:
+  - Well-established facts
+  - Contested facts
+  - Certain predictions
+  - Uncertain predictions
+  - Normative judgments
+  - Metaphysical beliefs
 
 **Output:**
 ```
 outputs/runpod_evaluation/
-├── direct_prompting_Llama-2-7b-hf.json
-├── logit_gap_Llama-2-7b-hf.json
-└── ccs_Llama-2-7b-hf_layer-1.json
+├── direct_prompting_Llama-2-7b-hf.json  # Test set results
+├── logit_gap_Llama-2-7b-hf.json         # Test set results
+└── ccs_Llama-2-7b-hf_layer-1.json      # Test set results
 ```
 
 ### `generate_plots.py`

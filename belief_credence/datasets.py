@@ -61,64 +61,210 @@ WELL_ESTABLISHED_FACTS = [
             "The Earth orbits around the Sun.",
             "Earth revolves around the Sun.",
             "The Sun is orbited by Earth.",
-            "Earth's orbit is around the Sun.",
         ],
         negative_phrasings=[
             "The Earth does not orbit around the Sun.",
             "Earth does not revolve around the Sun.",
             "The Sun is not orbited by Earth.",
-            "Earth's orbit is not around the Sun.",
         ],
         belief_type=BeliefType.WELL_ESTABLISHED_FACT,
-        description="Heliocentric model - basic astronomy",
+        description="Heliocentric model",
     ),
     ClaimSet(
         positive_phrasings=[
             "Water freezes at 0 degrees Celsius at standard pressure.",
             "At standard pressure, water freezes at 0°C.",
-            "The freezing point of water is 0°C at standard pressure.",
-            "Water becomes ice at 0 degrees Celsius under standard conditions.",
+            "The freezing point of water is 0°C.",
         ],
         negative_phrasings=[
             "Water does not freeze at 0 degrees Celsius at standard pressure.",
             "At standard pressure, water does not freeze at 0°C.",
-            "The freezing point of water is not 0°C at standard pressure.",
-            "Water does not become ice at 0 degrees Celsius under standard conditions.",
+            "The freezing point of water is not 0°C.",
         ],
         belief_type=BeliefType.WELL_ESTABLISHED_FACT,
-        description="Physical property of water",
+        description="Water freezing point",
     ),
     ClaimSet(
         positive_phrasings=[
             "DNA contains genetic information.",
             "Genetic information is stored in DNA.",
             "DNA carries hereditary information.",
-            "The genetic code is contained in DNA molecules.",
         ],
         negative_phrasings=[
             "DNA does not contain genetic information.",
             "Genetic information is not stored in DNA.",
             "DNA does not carry hereditary information.",
-            "The genetic code is not contained in DNA molecules.",
         ],
         belief_type=BeliefType.WELL_ESTABLISHED_FACT,
-        description="Fundamental molecular biology",
+        description="DNA and genetics",
     ),
     ClaimSet(
         positive_phrasings=[
             "Paris is the capital of France.",
             "France's capital city is Paris.",
             "The capital of France is Paris.",
-            "Paris serves as the capital of France.",
         ],
         negative_phrasings=[
             "Paris is not the capital of France.",
             "France's capital city is not Paris.",
             "The capital of France is not Paris.",
-            "Paris does not serve as the capital of France.",
         ],
         belief_type=BeliefType.WELL_ESTABLISHED_FACT,
-        description="Basic geography",
+        description="French capital",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Humans need oxygen to survive.",
+            "Oxygen is necessary for human survival.",
+            "Human survival requires oxygen.",
+        ],
+        negative_phrasings=[
+            "Humans do not need oxygen to survive.",
+            "Oxygen is not necessary for human survival.",
+            "Human survival does not require oxygen.",
+        ],
+        belief_type=BeliefType.WELL_ESTABLISHED_FACT,
+        description="Oxygen requirement",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Light travels faster than sound.",
+            "Sound travels slower than light.",
+            "The speed of light exceeds the speed of sound.",
+        ],
+        negative_phrasings=[
+            "Light does not travel faster than sound.",
+            "Sound does not travel slower than light.",
+            "The speed of light does not exceed the speed of sound.",
+        ],
+        belief_type=BeliefType.WELL_ESTABLISHED_FACT,
+        description="Light vs sound speed",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "The Earth is approximately spherical.",
+            "Earth has a roughly spherical shape.",
+            "The shape of Earth is essentially spherical.",
+        ],
+        negative_phrasings=[
+            "The Earth is not approximately spherical.",
+            "Earth does not have a roughly spherical shape.",
+            "The shape of Earth is not essentially spherical.",
+        ],
+        belief_type=BeliefType.WELL_ESTABLISHED_FACT,
+        description="Earth's shape",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Gravity causes objects to fall toward Earth.",
+            "Objects fall toward Earth due to gravity.",
+            "Gravitational force pulls objects toward Earth.",
+        ],
+        negative_phrasings=[
+            "Gravity does not cause objects to fall toward Earth.",
+            "Objects do not fall toward Earth due to gravity.",
+            "Gravitational force does not pull objects toward Earth.",
+        ],
+        belief_type=BeliefType.WELL_ESTABLISHED_FACT,
+        description="Gravity and falling",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "The speed of light in vacuum is constant.",
+            "Light speed in vacuum remains constant.",
+            "In a vacuum, light always travels at the same speed.",
+        ],
+        negative_phrasings=[
+            "The speed of light in vacuum is not constant.",
+            "Light speed in vacuum does not remain constant.",
+            "In a vacuum, light does not always travel at the same speed.",
+        ],
+        belief_type=BeliefType.WELL_ESTABLISHED_FACT,
+        description="Constant light speed",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Humans have 46 chromosomes.",
+            "The human genome contains 46 chromosomes.",
+            "There are 46 chromosomes in human cells.",
+        ],
+        negative_phrasings=[
+            "Humans do not have 46 chromosomes.",
+            "The human genome does not contain 46 chromosomes.",
+            "There are not 46 chromosomes in human cells.",
+        ],
+        belief_type=BeliefType.WELL_ESTABLISHED_FACT,
+        description="Human chromosomes",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Antibiotics kill bacteria.",
+            "Bacteria are killed by antibiotics.",
+            "Antibiotics are effective against bacteria.",
+        ],
+        negative_phrasings=[
+            "Antibiotics do not kill bacteria.",
+            "Bacteria are not killed by antibiotics.",
+            "Antibiotics are not effective against bacteria.",
+        ],
+        belief_type=BeliefType.WELL_ESTABLISHED_FACT,
+        description="Antibiotic function",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "The heart pumps blood through the body.",
+            "Blood is pumped through the body by the heart.",
+            "The heart's function is to pump blood.",
+        ],
+        negative_phrasings=[
+            "The heart does not pump blood through the body.",
+            "Blood is not pumped through the body by the heart.",
+            "The heart's function is not to pump blood.",
+        ],
+        belief_type=BeliefType.WELL_ESTABLISHED_FACT,
+        description="Heart function",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Plants perform photosynthesis.",
+            "Photosynthesis is performed by plants.",
+            "Plants convert light energy through photosynthesis.",
+        ],
+        negative_phrasings=[
+            "Plants do not perform photosynthesis.",
+            "Photosynthesis is not performed by plants.",
+            "Plants do not convert light energy through photosynthesis.",
+        ],
+        belief_type=BeliefType.WELL_ESTABLISHED_FACT,
+        description="Plant photosynthesis",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "The Moon orbits the Earth.",
+            "Earth is orbited by the Moon.",
+            "The Moon revolves around Earth.",
+        ],
+        negative_phrasings=[
+            "The Moon does not orbit the Earth.",
+            "Earth is not orbited by the Moon.",
+            "The Moon does not revolve around Earth.",
+        ],
+        belief_type=BeliefType.WELL_ESTABLISHED_FACT,
+        description="Moon's orbit",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Diamonds are made of carbon.",
+            "Carbon is the primary element in diamonds.",
+            "Diamonds consist of carbon atoms.",
+        ],
+        negative_phrasings=[
+            "Diamonds are not made of carbon.",
+            "Carbon is not the primary element in diamonds.",
+            "Diamonds do not consist of carbon atoms.",
+        ],
+        belief_type=BeliefType.WELL_ESTABLISHED_FACT,
+        description="Diamond composition",
     ),
 ]
 
@@ -128,13 +274,11 @@ CONTESTED_FACTS = [
             "Human activity is the primary cause of recent global warming.",
             "Recent global warming is primarily caused by human activity.",
             "The main driver of contemporary climate change is human activity.",
-            "Anthropogenic factors are the primary cause of current global warming.",
         ],
         negative_phrasings=[
             "Human activity is not the primary cause of recent global warming.",
             "Recent global warming is not primarily caused by human activity.",
             "The main driver of contemporary climate change is not human activity.",
-            "Anthropogenic factors are not the primary cause of current global warming.",
         ],
         belief_type=BeliefType.CONTESTED_FACT,
         description="Climate change attribution",
@@ -144,13 +288,11 @@ CONTESTED_FACTS = [
             "COVID-19 vaccines are effective at preventing severe illness.",
             "Vaccination against COVID-19 effectively prevents severe disease.",
             "COVID-19 vaccines work to prevent serious illness.",
-            "Severe COVID-19 illness is effectively prevented by vaccination.",
         ],
         negative_phrasings=[
             "COVID-19 vaccines are not effective at preventing severe illness.",
             "Vaccination against COVID-19 does not effectively prevent severe disease.",
             "COVID-19 vaccines do not work to prevent serious illness.",
-            "Severe COVID-19 illness is not effectively prevented by vaccination.",
         ],
         belief_type=BeliefType.CONTESTED_FACT,
         description="Vaccine efficacy",
@@ -160,16 +302,182 @@ CONTESTED_FACTS = [
             "Minimum wage increases lead to reduced employment.",
             "Raising the minimum wage causes job losses.",
             "Higher minimum wages result in fewer jobs.",
-            "Employment decreases when minimum wage increases.",
         ],
         negative_phrasings=[
             "Minimum wage increases do not lead to reduced employment.",
             "Raising the minimum wage does not cause job losses.",
             "Higher minimum wages do not result in fewer jobs.",
-            "Employment does not decrease when minimum wage increases.",
         ],
         belief_type=BeliefType.CONTESTED_FACT,
-        description="Economic policy effects",
+        description="Minimum wage effects",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Genetically modified foods are safe for human consumption.",
+            "GMO foods pose no health risks to humans.",
+            "Consuming genetically modified organisms is safe.",
+        ],
+        negative_phrasings=[
+            "Genetically modified foods are not safe for human consumption.",
+            "GMO foods pose health risks to humans.",
+            "Consuming genetically modified organisms is not safe.",
+        ],
+        belief_type=BeliefType.CONTESTED_FACT,
+        description="GMO safety",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Nuclear energy is safer than fossil fuels.",
+            "Fossil fuels are more dangerous than nuclear energy.",
+            "Nuclear power poses fewer risks than fossil fuel energy.",
+        ],
+        negative_phrasings=[
+            "Nuclear energy is not safer than fossil fuels.",
+            "Fossil fuels are not more dangerous than nuclear energy.",
+            "Nuclear power does not pose fewer risks than fossil fuel energy.",
+        ],
+        belief_type=BeliefType.CONTESTED_FACT,
+        description="Nuclear vs fossil fuel safety",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Gun control reduces violent crime.",
+            "Stricter gun laws decrease violent crime rates.",
+            "Violent crime is reduced by gun control measures.",
+        ],
+        negative_phrasings=[
+            "Gun control does not reduce violent crime.",
+            "Stricter gun laws do not decrease violent crime rates.",
+            "Violent crime is not reduced by gun control measures.",
+        ],
+        belief_type=BeliefType.CONTESTED_FACT,
+        description="Gun control effectiveness",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Tax cuts stimulate economic growth.",
+            "Economic growth is stimulated by tax cuts.",
+            "Reducing taxes leads to economic expansion.",
+        ],
+        negative_phrasings=[
+            "Tax cuts do not stimulate economic growth.",
+            "Economic growth is not stimulated by tax cuts.",
+            "Reducing taxes does not lead to economic expansion.",
+        ],
+        belief_type=BeliefType.CONTESTED_FACT,
+        description="Tax policy effects",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "School choice improves educational outcomes.",
+            "Educational outcomes are improved by school choice programs.",
+            "Student achievement increases with school choice.",
+        ],
+        negative_phrasings=[
+            "School choice does not improve educational outcomes.",
+            "Educational outcomes are not improved by school choice programs.",
+            "Student achievement does not increase with school choice.",
+        ],
+        belief_type=BeliefType.CONTESTED_FACT,
+        description="School choice effects",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Organic food is healthier than conventional food.",
+            "Conventional food is less healthy than organic food.",
+            "Organic produce provides greater health benefits.",
+        ],
+        negative_phrasings=[
+            "Organic food is not healthier than conventional food.",
+            "Conventional food is not less healthy than organic food.",
+            "Organic produce does not provide greater health benefits.",
+        ],
+        belief_type=BeliefType.CONTESTED_FACT,
+        description="Organic food health benefits",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Social media use causes mental health problems in teenagers.",
+            "Teenage mental health problems are caused by social media.",
+            "Social media negatively impacts adolescent mental health.",
+        ],
+        negative_phrasings=[
+            "Social media use does not cause mental health problems in teenagers.",
+            "Teenage mental health problems are not caused by social media.",
+            "Social media does not negatively impact adolescent mental health.",
+        ],
+        belief_type=BeliefType.CONTESTED_FACT,
+        description="Social media and mental health",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Violent video games increase aggressive behavior.",
+            "Aggressive behavior is increased by violent video games.",
+            "Playing violent games makes people more aggressive.",
+        ],
+        negative_phrasings=[
+            "Violent video games do not increase aggressive behavior.",
+            "Aggressive behavior is not increased by violent video games.",
+            "Playing violent games does not make people more aggressive.",
+        ],
+        belief_type=BeliefType.CONTESTED_FACT,
+        description="Video game violence effects",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Immigration benefits the economy.",
+            "The economy benefits from immigration.",
+            "Immigration provides net economic gains.",
+        ],
+        negative_phrasings=[
+            "Immigration does not benefit the economy.",
+            "The economy does not benefit from immigration.",
+            "Immigration does not provide net economic gains.",
+        ],
+        belief_type=BeliefType.CONTESTED_FACT,
+        description="Immigration economic impact",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Capital punishment deters crime.",
+            "Crime is deterred by capital punishment.",
+            "The death penalty reduces criminal activity.",
+        ],
+        negative_phrasings=[
+            "Capital punishment does not deter crime.",
+            "Crime is not deterred by capital punishment.",
+            "The death penalty does not reduce criminal activity.",
+        ],
+        belief_type=BeliefType.CONTESTED_FACT,
+        description="Death penalty deterrence",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Artificial sweeteners are harmful to health.",
+            "Health is harmed by artificial sweeteners.",
+            "Using artificial sweeteners poses health risks.",
+        ],
+        negative_phrasings=[
+            "Artificial sweeteners are not harmful to health.",
+            "Health is not harmed by artificial sweeteners.",
+            "Using artificial sweeteners does not pose health risks.",
+        ],
+        belief_type=BeliefType.CONTESTED_FACT,
+        description="Artificial sweetener safety",
+    ),
+    ClaimSet(
+        positive_phrasings=[
+            "Remote work increases productivity.",
+            "Productivity is increased by remote work.",
+            "Working from home makes employees more productive.",
+        ],
+        negative_phrasings=[
+            "Remote work does not increase productivity.",
+            "Productivity is not increased by remote work.",
+            "Working from home does not make employees more productive.",
+        ],
+        belief_type=BeliefType.CONTESTED_FACT,
+        description="Remote work productivity",
     ),
 ]
 

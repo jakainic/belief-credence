@@ -18,8 +18,8 @@ from belief_credence import (
     DirectPrompting,
     LogitGap,
     CCS,
-    get_dataset,
-    BeliefType,
+    create_mixed_split,
+    get_split_statistics,
     save_estimates,
 )
 from belief_credence.model_utils import ModelWrapper
@@ -50,33 +50,45 @@ def main() -> None:
     load_time = time.time() - start
     print(f"✓ Model loaded in {format_time(load_time)}")
 
-    # Step 2: Get training data for CCS
-    print("\n[2/6] Loading training data...")
+    # Step 2: Create train/val/test split (mixed belief types)
+    print("\n[2/6] Creating data splits...")
     start = time.time()
-    training_claim_sets = get_dataset(BeliefType.WELL_ESTABLISHED_FACT)
-    training_claims = [cs.to_claims()[0] for cs in training_claim_sets]
+    split = create_mixed_split(
+        train_ratio=0.6,
+        val_ratio=0.2,
+        test_ratio=0.2,
+        seed=42,
+    )
     data_time = time.time() - start
-    print(f"✓ Loaded {len(training_claims)} training claims in {format_time(data_time)}")
 
-    # Step 3: Train CCS probe
-    print("\n[3/6] Training CCS probe...")
+    # Print split statistics
+    stats = get_split_statistics(split)
+    print(f"\nSplit statistics by belief type:")
+    for split_name in ["train", "val", "test"]:
+        print(f"\n{split_name.upper()}:")
+        for belief_type, count in stats[split_name].items():
+            if count > 0:
+                print(f"  {belief_type.value}: {count}")
+
+    print(f"\n✓ Data splits created in {format_time(data_time)}")
+
+    # Step 3: Train CCS probe on training set
+    print("\n[3/6] Training CCS probe on training set...")
     start = time.time()
     ccs = CCS(model=model, direction_method="logit_gap", layer=-1)
-    ccs.train_probe(training_claims, epochs=100, lr=1e-3)
+    ccs.train_probe(split.train_claims, epochs=100, lr=1e-3)
     train_time = time.time() - start
     print(f"✓ CCS probe trained in {format_time(train_time)}")
 
-    # Step 4: Get evaluation data
-    print("\n[4/6] Loading evaluation data...")
-    start = time.time()
-    eval_claim_sets = get_dataset(BeliefType.CONTESTED_FACT)
-    eval_claims = [cs.to_claims()[0] for cs in eval_claim_sets]
-    eval_data_time = time.time() - start
-    print(f"✓ Loaded {len(eval_claims)} evaluation claims in {format_time(eval_data_time)}")
+    # Step 4: Validate on validation set (optional hyperparameter tuning)
+    print("\n[4/6] Validating on validation set...")
+    print(f"Using validation set with {len(split.val_claims)} claims for sanity check")
 
-    # Step 5: Evaluate each method separately
-    print("\n[5/6] Evaluating methods...")
+    # Step 5: Evaluate each method on TEST set
+    print("\n[5/6] Evaluating methods on test set...")
     print("-" * 80)
+    print(f"Test set: {len(split.test_claims)} claims")
+    print()
 
     methods = [
         ("DirectPrompting", DirectPrompting(model=model)),
@@ -92,17 +104,17 @@ def main() -> None:
         start = time.time()
 
         estimates = []
-        for i, claim in enumerate(eval_claims, 1):
+        for i, claim in enumerate(split.test_claims, 1):
             estimate = method.estimate(claim)
             estimates.append(estimate)
 
             # Progress indicator
-            if i % 5 == 0 or i == len(eval_claims):
+            if i % 5 == 0 or i == len(split.test_claims):
                 elapsed = time.time() - start
                 rate = i / elapsed if elapsed > 0 else 0
-                eta = (len(eval_claims) - i) / rate if rate > 0 else 0
+                eta = (len(split.test_claims) - i) / rate if rate > 0 else 0
                 print(
-                    f"  Progress: {i}/{len(eval_claims)} claims "
+                    f"  Progress: {i}/{len(split.test_claims)} claims "
                     f"({elapsed:.1f}s elapsed, {rate:.2f} claims/s, "
                     f"ETA: {format_time(eta)})"
                 )
@@ -127,14 +139,16 @@ def main() -> None:
     print("\n[6/6] Summary")
     print("=" * 80)
     print(f"\nModel: meta-llama/Llama-2-7b-hf (8-bit)")
-    print(f"Training claims: {len(training_claims)} (well-established facts)")
-    print(f"Evaluation claims: {len(eval_claims)} (contested facts)")
+    print(f"\nData Split:")
+    print(f"  Training:   {len(split.train_claims)} claims (mixed belief types)")
+    print(f"  Validation: {len(split.val_claims)} claims (mixed belief types)")
+    print(f"  Test:       {len(split.test_claims)} claims (mixed belief types)")
     print(f"\nTiming Breakdown:")
     print(f"  Model loading:      {format_time(load_time)}")
     print(f"  CCS training:       {format_time(train_time)}")
     print()
     for method_name, eval_time in timings.items():
-        per_claim = eval_time / len(eval_claims)
+        per_claim = eval_time / len(split.test_claims)
         print(f"  {method_name:20s} {format_time(eval_time):>10s} ({per_claim:.2f}s/claim)")
 
     total_time = load_time + train_time + sum(timings.values())
@@ -144,6 +158,7 @@ def main() -> None:
     print("\nNext steps:")
     print("  1. Run: python scripts/generate_plots.py")
     print("  2. Download outputs/ folder to view results")
+    print("\nNote: Results are from TEST set. Validation set available for hyperparameter tuning.")
 
     print("\n" + "=" * 80)
 

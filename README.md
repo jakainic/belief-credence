@@ -312,29 +312,66 @@ See `examples/evaluate_epistemology.py` for a complete example.
 
 ## Curated Datasets
 
-The library includes curated datasets of contrastive claim pairs across six belief categories, each with multiple phrasings to test consistency and coherence:
+The library includes curated datasets of contrastive claim pairs across six belief categories, each with multiple phrasings to test consistency and coherence.
+
+**Dataset Size**: 15 examples per category (90 total claims), enabling proper train/validation/test splits.
 
 ### Belief Categories
 
-1. **Well-Established Facts** - Scientific and geographic facts with strong consensus
-   - Example: "The Earth orbits around the Sun" (4 phrasings)
+1. **Well-Established Facts** (15 examples) - Scientific and geographic facts with strong consensus
+   - Examples: "The Earth orbits around the Sun", "DNA contains genetic information"
 
-2. **Contested Facts** - Empirical claims with ongoing debate
-   - Example: "Human activity is the primary cause of recent global warming" (4 phrasings)
+2. **Contested Facts** (15 examples) - Empirical claims with ongoing debate
+   - Examples: "Human activity is the primary cause of recent global warming", "Remote work increases productivity"
 
-3. **Certain Predictions** - High-confidence future events
-   - Example: "The Sun will rise tomorrow morning" (4 phrasings)
+3. **Certain Predictions** (3 examples) - High-confidence future events
+   - Examples: "The Sun will rise tomorrow morning", "You will eventually die"
 
-4. **Uncertain Predictions** - Speculative future events
-   - Example: "Artificial general intelligence will be developed by 2050" (4 phrasings)
+4. **Uncertain Predictions** (3 examples) - Speculative future events
+   - Examples: "Artificial general intelligence will be developed by 2050", "Humans will establish a permanent settlement on Mars by 2100"
 
-5. **Normative Judgments** - Moral and political value claims
-   - Example: "Lying is morally wrong" (4 phrasings)
+5. **Normative Judgments** (3 examples) - Moral and political value claims
+   - Examples: "Lying is morally wrong", "Healthcare is a human right"
 
-6. **Metaphysical Beliefs** - Philosophical positions
-   - Example: "Free will exists" (4 phrasings)
+6. **Metaphysical Beliefs** (3 examples) - Philosophical positions
+   - Examples: "Free will exists", "Consciousness can exist independently of physical matter"
 
-### Usage
+### Train/Validation/Test Splits
+
+For proper evaluation, use stratified splits that mix all belief types:
+
+```python
+from belief_credence import create_mixed_split, get_split_statistics
+
+# Create 60/20/20 train/val/test split with mixed belief types
+split = create_mixed_split(
+    train_ratio=0.6,
+    val_ratio=0.2,
+    test_ratio=0.2,
+    seed=42,  # For reproducibility
+)
+
+# View split statistics
+stats = get_split_statistics(split)
+print(f"Train: {len(split.train_claims)} claims")
+print(f"Val:   {len(split.val_claims)} claims")
+print(f"Test:  {len(split.test_claims)} claims")
+
+# Each split contains a mix of belief types
+print(stats['train'][BeliefType.CONTESTED_FACT])  # e.g., 9 contested facts in training
+
+# Use the split for evaluation
+ccs = CCS(model=model, direction_method="logit_gap")
+ccs.train_probe(split.train_claims)  # Train on training set
+
+# Tune hyperparameters on validation set
+val_estimates = [ccs.estimate(claim) for claim in split.val_claims]
+
+# Final evaluation on test set
+test_estimates = [ccs.estimate(claim) for claim in split.test_claims]
+```
+
+### Basic Usage
 
 ```python
 from belief_credence import BeliefType, get_dataset, get_all_claims

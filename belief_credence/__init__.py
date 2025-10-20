@@ -36,6 +36,12 @@ from belief_credence.datasets import (
     NORMATIVE_JUDGMENTS,
     METAPHYSICAL_BELIEFS,
 )
+from belief_credence.data_split import (
+    DataSplit,
+    create_mixed_split,
+    create_type_specific_split,
+    get_split_statistics,
+)
 from belief_credence.output_utils import (
     save_estimates,
     load_estimates,
@@ -94,6 +100,11 @@ __all__ = [
     "UNCERTAIN_PREDICTIONS",
     "NORMATIVE_JUDGMENTS",
     "METAPHYSICAL_BELIEFS",
+    # Data splitting
+    "DataSplit",
+    "create_mixed_split",
+    "create_type_specific_split",
+    "get_split_statistics",
     # Output utilities
     "save_estimates",
     "load_estimates",
