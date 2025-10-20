@@ -16,14 +16,15 @@ def plot_method_comparison(
     estimates_by_method: dict[str, list[CredenceEstimate]],
     title: str = "Method Comparison",
     save_path: str | Path | None = None,
-    figsize: tuple[float, float] = (12, 8),
+    figsize: tuple[float, float] = (16, 10),
 ) -> None:
     """Create a comprehensive comparison plot of multiple methods.
 
     Creates a figure with multiple subplots:
-    - Scatter plot comparing each method pair
+    - All pairwise scatter plots comparing methods
     - Distribution plot showing P(True) distributions
-    - Correlation heatmap
+    - Correlation matrix
+    - Summary statistics
 
     Args:
         estimates_by_method: Dict mapping method name to list of estimates
@@ -31,9 +32,6 @@ def plot_method_comparison(
         save_path: Optional path to save figure
         figsize: Figure size (width, height)
     """
-    fig = plt.figure(figsize=figsize)
-    gs = fig.add_gridspec(2, 2, hspace=0.3, wspace=0.3)
-
     method_names = list(estimates_by_method.keys())
     num_methods = len(method_names)
 
@@ -43,76 +41,167 @@ def plot_method_comparison(
         for name, ests in estimates_by_method.items()
     }
 
-    # 1. Pairwise scatter plots (top left)
-    ax1 = fig.add_subplot(gs[0, 0])
-    if num_methods == 2:
-        method1, method2 = method_names
-        ax1.scatter(
-            p_true_by_method[method1],
-            p_true_by_method[method2],
-            alpha=0.6,
-            s=50,
-        )
-        ax1.plot([0, 1], [0, 1], "k--", alpha=0.3, label="y=x")
-        ax1.set_xlabel(method1)
-        ax1.set_ylabel(method2)
-        ax1.set_title("Method Comparison")
-        ax1.legend()
-        ax1.grid(True, alpha=0.3)
-    elif num_methods == 3:
-        # Show first two methods
-        method1, method2 = method_names[0], method_names[1]
-        ax1.scatter(
-            p_true_by_method[method1],
-            p_true_by_method[method2],
-            alpha=0.6,
-            s=50,
-            label=f"{method1} vs {method2}",
-        )
-        ax1.plot([0, 1], [0, 1], "k--", alpha=0.3)
-        ax1.set_xlabel(method1)
-        ax1.set_ylabel(method2)
-        ax1.set_title("Pairwise Comparison")
-        ax1.grid(True, alpha=0.3)
+    # Calculate number of pairwise comparisons
+    num_pairs = num_methods * (num_methods - 1) // 2
 
-    # 2. Distribution plots (top right)
-    ax2 = fig.add_subplot(gs[0, 1])
+    # Create layout: pairwise scatters on top, distributions and stats on bottom
+    # For 2 methods: 1 scatter, then distributions, correlation matrix, stats
+    # For 3 methods: 3 scatters, then distributions, correlation matrix, stats
+    if num_methods == 2:
+        fig = plt.figure(figsize=figsize)
+        gs = fig.add_gridspec(2, 3, hspace=0.3, wspace=0.3)
+
+        # Single scatter plot (spans 2 columns)
+        ax_scatter = fig.add_subplot(gs[0, :2])
+        method1, method2 = method_names
+        ax_scatter.scatter(
+            p_true_by_method[method1],
+            p_true_by_method[method2],
+            alpha=0.6,
+            s=50,
+        )
+        ax_scatter.plot([0, 1], [0, 1], "k--", alpha=0.3, label="y=x")
+        ax_scatter.set_xlabel(method1, fontsize=10)
+        ax_scatter.set_ylabel(method2, fontsize=10)
+        ax_scatter.set_title(f"{method1} vs {method2}", fontsize=11)
+        ax_scatter.legend()
+        ax_scatter.grid(True, alpha=0.3)
+        ax_scatter.set_xlim(-0.05, 1.05)
+        ax_scatter.set_ylim(-0.05, 1.05)
+
+        # Distribution plot
+        ax_dist = fig.add_subplot(gs[0, 2])
+
+        # Correlation matrix
+        ax_corr = fig.add_subplot(gs[1, 0])
+
+        # Stats (spans 2 columns)
+        ax_stats = fig.add_subplot(gs[1, 1:])
+
+    elif num_methods == 3:
+        fig = plt.figure(figsize=figsize)
+        gs = fig.add_gridspec(2, 4, hspace=0.3, wspace=0.4)
+
+        # Three scatter plots on top row
+        pairs = [
+            (method_names[0], method_names[1]),
+            (method_names[0], method_names[2]),
+            (method_names[1], method_names[2]),
+        ]
+
+        for idx, (method1, method2) in enumerate(pairs):
+            ax = fig.add_subplot(gs[0, idx])
+            ax.scatter(
+                p_true_by_method[method1],
+                p_true_by_method[method2],
+                alpha=0.6,
+                s=40,
+            )
+            ax.plot([0, 1], [0, 1], "k--", alpha=0.3)
+
+            # Shorten method names for labels if too long
+            m1_short = method1.split('_')[0] if '_' in method1 else method1
+            m2_short = method2.split('_')[0] if '_' in method2 else method2
+
+            ax.set_xlabel(m1_short, fontsize=9)
+            ax.set_ylabel(m2_short, fontsize=9)
+            ax.set_title(f"{m1_short} vs {m2_short}", fontsize=10)
+            ax.grid(True, alpha=0.3)
+            ax.set_xlim(-0.05, 1.05)
+            ax.set_ylim(-0.05, 1.05)
+
+        # Distribution plot (top right)
+        ax_dist = fig.add_subplot(gs[0, 3])
+
+        # Correlation matrix (bottom left)
+        ax_corr = fig.add_subplot(gs[1, 0])
+
+        # Stats (spans remaining columns)
+        ax_stats = fig.add_subplot(gs[1, 1:])
+
+    else:
+        # For 4+ methods, use a more flexible grid
+        fig = plt.figure(figsize=(18, 12))
+
+        # Calculate grid dimensions for scatter plots
+        scatter_cols = min(4, num_pairs)
+        scatter_rows = (num_pairs + scatter_cols - 1) // scatter_cols
+
+        gs = fig.add_gridspec(scatter_rows + 1, 4, hspace=0.3, wspace=0.4)
+
+        # Create all pairwise scatter plots
+        pair_idx = 0
+        for i, method1 in enumerate(method_names):
+            for method2 in method_names[i + 1:]:
+                row = pair_idx // scatter_cols
+                col = pair_idx % scatter_cols
+
+                ax = fig.add_subplot(gs[row, col])
+                ax.scatter(
+                    p_true_by_method[method1],
+                    p_true_by_method[method2],
+                    alpha=0.6,
+                    s=30,
+                )
+                ax.plot([0, 1], [0, 1], "k--", alpha=0.3)
+
+                m1_short = method1.split('_')[0] if '_' in method1 else method1
+                m2_short = method2.split('_')[0] if '_' in method2 else method2
+
+                ax.set_xlabel(m1_short, fontsize=8)
+                ax.set_ylabel(m2_short, fontsize=8)
+                ax.set_title(f"{m1_short} vs {m2_short}", fontsize=9)
+                ax.grid(True, alpha=0.3)
+                ax.set_xlim(-0.05, 1.05)
+                ax.set_ylim(-0.05, 1.05)
+
+                pair_idx += 1
+
+        # Distribution, correlation, and stats on bottom row
+        ax_dist = fig.add_subplot(gs[scatter_rows, 0])
+        ax_corr = fig.add_subplot(gs[scatter_rows, 1])
+        ax_stats = fig.add_subplot(gs[scatter_rows, 2:])
+
+    # Distribution plots
     for method_name in method_names:
-        ax2.hist(
+        ax_dist.hist(
             p_true_by_method[method_name],
             bins=20,
             alpha=0.5,
-            label=method_name,
+            label=method_name.split('_')[0] if '_' in method_name else method_name,
             range=(0, 1),
         )
-    ax2.set_xlabel("P(True)")
-    ax2.set_ylabel("Count")
-    ax2.set_title("P(True) Distributions")
-    ax2.legend()
-    ax2.grid(True, alpha=0.3, axis="y")
+    ax_dist.set_xlabel("P(True)", fontsize=10)
+    ax_dist.set_ylabel("Count", fontsize=10)
+    ax_dist.set_title("P(True) Distributions", fontsize=11)
+    ax_dist.legend(fontsize=8)
+    ax_dist.grid(True, alpha=0.3, axis="y")
 
-    # 3. Correlation heatmap (bottom left)
-    ax3 = fig.add_subplot(gs[1, 0])
+    # Correlation matrix
     corr_matrix = np.corrcoef([p_true_by_method[name] for name in method_names])
-    im = ax3.imshow(corr_matrix, cmap="RdBu_r", vmin=-1, vmax=1, aspect="auto")
-    ax3.set_xticks(range(num_methods))
-    ax3.set_yticks(range(num_methods))
-    ax3.set_xticklabels(method_names, rotation=45, ha="right")
-    ax3.set_yticklabels(method_names)
-    ax3.set_title("Correlation Matrix")
+    im = ax_corr.imshow(corr_matrix, cmap="RdBu_r", vmin=-1, vmax=1, aspect="auto")
+    ax_corr.set_xticks(range(num_methods))
+    ax_corr.set_yticks(range(num_methods))
+
+    # Shorten method names for axis labels
+    short_names = [name.split('_')[0] if '_' in name else name for name in method_names]
+    ax_corr.set_xticklabels(short_names, rotation=45, ha="right", fontsize=9)
+    ax_corr.set_yticklabels(short_names, fontsize=9)
+    ax_corr.set_title("Correlation Matrix", fontsize=11)
 
     # Add correlation values
     for i in range(num_methods):
         for j in range(num_methods):
-            text = ax3.text(
-                j, i, f"{corr_matrix[i, j]:.2f}", ha="center", va="center", color="black"
+            text = ax_corr.text(
+                j, i, f"{corr_matrix[i, j]:.2f}", ha="center", va="center",
+                color="white" if abs(corr_matrix[i, j]) > 0.5 else "black",
+                fontsize=8
             )
 
-    plt.colorbar(im, ax=ax3, label="Correlation")
+    plt.colorbar(im, ax=ax_corr, label="Correlation")
 
-    # 4. Agreement statistics (bottom right)
-    ax4 = fig.add_subplot(gs[1, 1])
-    ax4.axis("off")
+    # Statistics
+    ax_stats.axis("off")
 
     stats_text = f"Statistics (n={len(next(iter(p_true_by_method.values())))} claims)\n\n"
 
@@ -128,13 +217,14 @@ def plot_method_comparison(
     if num_methods >= 2:
         stats_text += "Pairwise Mean Absolute Differences:\n"
         for i, method1 in enumerate(method_names):
-            for method2 in method_names[i + 1 :]:
+            for method2 in method_names[i + 1:]:
                 diff = np.abs(
                     p_true_by_method[method1] - p_true_by_method[method2]
                 ).mean()
                 stats_text += f"  {method1} vs {method2}: {diff:.3f}\n"
 
-    ax4.text(0.05, 0.95, stats_text, transform=ax4.transAxes, fontsize=9, verticalalignment="top", fontfamily="monospace")
+    ax_stats.text(0.05, 0.95, stats_text, transform=ax_stats.transAxes,
+                  fontsize=9, verticalalignment="top", fontfamily="monospace")
 
     fig.suptitle(title, fontsize=14, fontweight="bold")
 
