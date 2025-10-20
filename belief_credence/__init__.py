@@ -52,7 +52,6 @@ from belief_credence.output_utils import (
 from belief_credence.visualization import (
     plot_method_comparison,
     plot_claim_by_claim_comparison,
-    plot_agreement_heatmap,
     plot_calibration_comparison,
     create_comparison_report,
 )
@@ -122,7 +121,6 @@ __all__ = [
     # Visualization
     "plot_method_comparison",
     "plot_claim_by_claim_comparison",
-    "plot_agreement_heatmap",
     "plot_calibration_comparison",
     "create_comparison_report",
     # Validation

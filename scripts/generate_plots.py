@@ -30,7 +30,6 @@ from belief_credence import (
     create_comparison_report,
     plot_method_comparison,
     plot_claim_by_claim_comparison,
-    plot_agreement_heatmap,
     plot_calibration_comparison,
     print_validation_report,
 )

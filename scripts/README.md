@@ -142,7 +142,6 @@ python scripts/generate_plots.py \
 outputs/visualizations/
 ├── method_comparison_overview.png      # 4-panel comprehensive view
 ├── method_comparison_claims.png        # Claim-by-claim bars
-├── method_comparison_heatmap.png       # Agreement heatmap
 └── method_comparison_calibration.png   # Distribution curves
 ```
 

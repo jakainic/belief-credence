@@ -206,57 +206,6 @@ def plot_claim_by_claim_comparison(
     plt.show()
 
 
-def plot_agreement_heatmap(
-    estimates_by_method: dict[str, list[CredenceEstimate]],
-    title: str = "Agreement Heatmap",
-    save_path: str | Path | None = None,
-    figsize: tuple[float, float] = (12, 10),
-) -> None:
-    """Plot heatmap showing where methods agree/disagree.
-
-    Args:
-        estimates_by_method: Dict mapping method name to list of estimates
-        title: Plot title
-        save_path: Optional path to save figure
-        figsize: Figure size (width, height)
-    """
-    method_names = list(estimates_by_method.keys())
-    num_claims = len(next(iter(estimates_by_method.values())))
-    claims = [est.claim.statement for est in next(iter(estimates_by_method.values()))]
-
-    # Create matrix of P(True) values
-    p_matrix = np.array(
-        [[est.p_true for est in estimates_by_method[name]] for name in method_names]
-    )
-
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize, gridspec_kw={"width_ratios": [3, 1]})
-
-    # Main heatmap
-    im1 = ax1.imshow(p_matrix, cmap="RdYlGn", vmin=0, vmax=1, aspect="auto")
-    ax1.set_yticks(range(len(method_names)))
-    ax1.set_yticklabels(method_names)
-    ax1.set_xlabel("Claim Index", fontsize=12)
-    ax1.set_title(title, fontsize=14, fontweight="bold")
-    plt.colorbar(im1, ax=ax1, label="P(True)")
-
-    # Disagreement heatmap (standard deviation across methods)
-    disagreement = np.std(p_matrix, axis=0)
-    im2 = ax2.imshow(
-        disagreement.reshape(-1, 1), cmap="Reds", vmin=0, vmax=0.5, aspect="auto"
-    )
-    ax2.set_xticks([])
-    ax2.set_yticks(range(0, num_claims, max(1, num_claims // 20)))
-    ax2.set_title("Disagreement\n(Std Dev)", fontsize=10)
-    plt.colorbar(im2, ax=ax2, label="Std Dev")
-
-    plt.tight_layout()
-
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
-
-    plt.show()
-
-
 def plot_calibration_comparison(
     estimates_by_method: dict[str, list[CredenceEstimate]],
     bins: int = 10,
@@ -332,14 +281,7 @@ def create_comparison_report(
         save_path=output_dir / f"{report_name}_claims.png",
     )
 
-    # 3. Agreement heatmap
-    print("  - Creating agreement heatmap...")
-    plot_agreement_heatmap(
-        estimates_by_method,
-        save_path=output_dir / f"{report_name}_heatmap.png",
-    )
-
-    # 4. Calibration
+    # 3. Calibration
     print("  - Creating calibration comparison...")
     plot_calibration_comparison(
         estimates_by_method,
