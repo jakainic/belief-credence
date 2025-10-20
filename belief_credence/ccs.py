@@ -153,7 +153,10 @@ Answer:"""
 
         # Get activations for just the statement
         hidden = self.model.get_hidden_states(claim.statement, self.layer)
-        hidden_mean = hidden.mean(dim=0).unsqueeze(0).float()
+        hidden_mean = hidden.mean(dim=0).unsqueeze(0)
+
+        # Convert to float32 and move to probe device
+        hidden_mean = hidden_mean.to(device=self.model.device, dtype=torch.float32)
 
         # Apply trained probe
         with torch.no_grad():
@@ -214,13 +217,14 @@ Answer:"""
         X_pos = torch.stack(activations_pos)
         X_neg = torch.stack(activations_neg)
 
-        # Convert to float32 for training (float16 can be unstable)
-        X_pos = X_pos.float()
-        X_neg = X_neg.float()
-
         input_dim = X_pos.shape[1]
         # Create probe in float32 on model device
         self._probe = CCSProbe(input_dim).to(self.model.device)
+
+        # Convert activations to float32 and move to same device as probe
+        # Do this AFTER probe creation to ensure compatibility
+        X_pos = X_pos.to(device=self.model.device, dtype=torch.float32)
+        X_neg = X_neg.to(device=self.model.device, dtype=torch.float32)
 
         optimizer = torch.optim.Adam(self._probe.parameters(), lr=lr)
 
