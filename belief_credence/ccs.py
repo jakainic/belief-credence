@@ -153,11 +153,10 @@ Answer:"""
 
         # Get activations for just the statement
         hidden = self.model.get_hidden_states(claim.statement, self.layer)
-        hidden_mean = hidden.mean(dim=0).unsqueeze(0)
+        hidden_mean = hidden.mean(dim=0).unsqueeze(0).float()
 
-        # Apply trained probe (ensure dtype matches)
+        # Apply trained probe
         with torch.no_grad():
-            hidden_mean = hidden_mean.to(next(self._probe.parameters()).dtype)
             p_true = self._probe(hidden_mean).item()
 
         return CredenceEstimate(
@@ -215,10 +214,13 @@ Answer:"""
         X_pos = torch.stack(activations_pos)
         X_neg = torch.stack(activations_neg)
 
+        # Convert to float32 for training (float16 can be unstable)
+        X_pos = X_pos.float()
+        X_neg = X_neg.float()
+
         input_dim = X_pos.shape[1]
-        # Create probe and move to same device and dtype as activations
-        self._probe = CCSProbe(input_dim)
-        self._probe = self._probe.to(device=self.model.device, dtype=X_pos.dtype)
+        # Create probe in float32 on model device
+        self._probe = CCSProbe(input_dim).to(self.model.device)
 
         optimizer = torch.optim.Adam(self._probe.parameters(), lr=lr)
 
