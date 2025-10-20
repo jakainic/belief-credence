@@ -13,6 +13,13 @@ class DirectPrompting(CredenceMethod):
 
     This is the simplest baseline method. We ask the model to output
     a credence level between 0 and 1 for a given claim.
+
+    WARNING: This method works poorly with base models (like Llama-2-7b-hf)
+    and requires instruction-tuned models (like Llama-2-7b-chat-hf) to produce
+    reliable numerical outputs. Base models often default to repeating prompt
+    examples or generating conversational text instead of probabilities.
+
+    For base models, prefer LogitGap or CCS methods instead.
     """
 
     def __init__(
@@ -67,15 +74,11 @@ class DirectPrompting(CredenceMethod):
         Returns:
             Formatted prompt string
         """
-        return f"""Please evaluate the following claim and provide your credence (probability that it is true) as a decimal number between 0.0 and 1.0.
+        return f"""Q: What is the probability that the following claim is true? Answer with only a number between 0 and 1.
 
-Claim: {statement}
+Claim: "{statement}"
 
-Where 0.0 means you are certain the claim is false, and 1.0 means you are certain the claim is true.
-
-Respond with ONLY a decimal number (e.g., 0.23, 0.67, 0.91).
-
-Credence:"""
+A:"""
 
     def _parse_credence(self, response: str) -> float:
         """Parse credence value from model response.
