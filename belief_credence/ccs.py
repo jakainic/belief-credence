@@ -155,8 +155,9 @@ Answer:"""
         hidden = self.model.get_hidden_states(claim.statement, self.layer)
         hidden_mean = hidden.mean(dim=0).unsqueeze(0)
 
-        # Apply trained probe
+        # Apply trained probe (ensure dtype matches)
         with torch.no_grad():
+            hidden_mean = hidden_mean.to(next(self._probe.parameters()).dtype)
             p_true = self._probe(hidden_mean).item()
 
         return CredenceEstimate(
@@ -215,7 +216,7 @@ Answer:"""
         X_neg = torch.stack(activations_neg)
 
         input_dim = X_pos.shape[1]
-        self._probe = CCSProbe(input_dim).to(self.model.device)
+        self._probe = CCSProbe(input_dim).to(X_pos.dtype).to(self.model.device)
 
         optimizer = torch.optim.Adam(self._probe.parameters(), lr=lr)
 
