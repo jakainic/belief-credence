@@ -95,16 +95,19 @@ def create_mixed_split(
     val_sets = shuffled_sets[n_train:n_train + n_val]
     test_sets = shuffled_sets[n_train + n_val:]
 
-    # Convert to claims (using first phrasing with canonical negation)
+    # Convert to claims (using ALL phrasings to enable coherence testing)
     def sets_to_claims(claim_sets: list[ClaimSet]) -> list[Claim]:
         claims = []
         for cs in claim_sets:
-            # Use first phrasing as canonical
-            claims.append(Claim(
-                statement=cs.positive_phrasings[0],
-                negation=cs.negative_phrasings[0],
-                metadata={"belief_type": cs.belief_type, "description": cs.description},
-            ))
+            # Use all phrasings with canonical negation
+            # This keeps all paraphrases of same proposition in same split (no leakage)
+            canonical_negative = cs.negative_phrasings[0]
+            for positive_phrasing in cs.positive_phrasings:
+                claims.append(Claim(
+                    statement=positive_phrasing,
+                    negation=canonical_negative,
+                    metadata={"belief_type": cs.belief_type, "description": cs.description},
+                ))
         return claims
 
     train_claims = sets_to_claims(train_sets)
