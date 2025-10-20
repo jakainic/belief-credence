@@ -54,7 +54,7 @@ class CCS(CredenceMethod):
     def __init__(
         self,
         model: ModelWrapper | None = None,
-        model_name: str = "meta-llama/Llama-2-7b-chat-hf",
+        model_name: str = "meta-llama/Llama-2-13b-chat-hf",
         layer: int = -1,
         direction_method: str = "logit_gap",
     ):

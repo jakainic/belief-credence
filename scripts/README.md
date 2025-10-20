@@ -31,13 +31,13 @@ python scripts/run_evaluation.py
 ```
 
 This will:
-- Load Llama-2-7b-chat-hf (8-bit quantization)
+- Load Llama-2-13b-chat-hf (8-bit quantization)
 - Train CCS probe on well-established facts
 - Evaluate all 3 methods on contested facts
 - Time each method separately
 - Save outputs to `outputs/runpod_evaluation/`
 
-**Expected runtime:** ~15-30 minutes depending on GPU
+**Expected runtime:** ~20-40 minutes depending on GPU (13B is ~2x slower than 7B)
 
 ### 3. Generate Plots
 
@@ -108,10 +108,10 @@ Runs full evaluation pipeline with proper train/validation/test split.
 **Output:**
 ```
 outputs/runpod_evaluation/
-├── direct_prompting_Llama-2-7b-chat-hf.json  # Test set results
-├── logit_gap_Llama-2-7b-chat-hf.json         # Test set results
-├── ccs_Llama-2-7b-chat-hf_layer-1.json       # Test set results
-└── split_info.json                           # Documents exact train/val/test split
+├── direct_prompting_Llama-2-13b-chat-hf.json  # Test set results
+├── logit_gap_Llama-2-13b-chat-hf.json         # Test set results
+├── ccs_Llama-2-13b-chat-hf_layer-1.json       # Test set results
+└── split_info.json                            # Documents exact train/val/test split
 ```
 
 ### `generate_plots.py`
