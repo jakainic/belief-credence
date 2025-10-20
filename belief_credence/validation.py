@@ -84,38 +84,49 @@ def validate_method(
     std_by_type = {bt: np.std(vals) for bt, vals in by_type.items()}
 
     # Compute expected pattern score
-    # Expected patterns:
-    # - WELL_ESTABLISHED_FACT: should be high (>0.7)
-    # - CONTESTED_FACT: should be middling (0.3-0.7)
-    # - CERTAIN_PREDICTION: should be very high (>0.8)
-    # - UNCERTAIN_PREDICTION: should vary widely
+    # Expected patterns (in order of importance):
+    # 1. WELL_ESTABLISHED_FACT: should be high (>0.7) - CRITICAL
+    # 2. CERTAIN_PREDICTION: should be very high (>0.8) - CRITICAL
+    # 3. CONTESTED_FACT: should be middling (0.3-0.7) - NICE TO HAVE
+    #
+    # Use weighted scoring: critical tests worth 2x, nice-to-have worth 1x
     pattern_score = 0.0
-    count = 0
+    max_score = 0.0
 
     if BeliefType.WELL_ESTABLISHED_FACT in mean_by_type:
-        # Higher is better, target >0.7
-        score = min(mean_by_type[BeliefType.WELL_ESTABLISHED_FACT] / 0.7, 1.0)
-        pattern_score += score
-        count += 1
+        # CRITICAL: Higher is better, target >0.7
+        mean_val = mean_by_type[BeliefType.WELL_ESTABLISHED_FACT]
+        if mean_val >= 0.7:
+            score = min(mean_val / 0.85, 1.0)  # Perfect score at 0.85+
+        else:
+            # Penalize heavily for being too low
+            score = mean_val / 0.7  # Linear penalty below threshold
+        pattern_score += score * 2.0  # Double weight for critical test
+        max_score += 2.0
 
     if BeliefType.CERTAIN_PREDICTION in mean_by_type:
-        # Higher is better, target >0.8
-        score = min(mean_by_type[BeliefType.CERTAIN_PREDICTION] / 0.8, 1.0)
-        pattern_score += score
-        count += 1
+        # CRITICAL: Higher is better, target >0.8
+        mean_val = mean_by_type[BeliefType.CERTAIN_PREDICTION]
+        if mean_val >= 0.8:
+            score = min(mean_val / 0.9, 1.0)  # Perfect score at 0.9+
+        else:
+            # Penalize heavily for being too low
+            score = mean_val / 0.8  # Linear penalty below threshold
+        pattern_score += score * 2.0  # Double weight for critical test
+        max_score += 2.0
 
     if BeliefType.CONTESTED_FACT in mean_by_type:
-        # Should be middling (0.4-0.6 is ideal)
+        # NICE TO HAVE: Should be middling (0.4-0.6 is ideal)
         mean_val = mean_by_type[BeliefType.CONTESTED_FACT]
         if 0.4 <= mean_val <= 0.6:
             score = 1.0
         else:
-            # Penalize deviation from middle
-            score = 1.0 - abs(mean_val - 0.5) / 0.5
-        pattern_score += score
-        count += 1
+            # Penalize deviation from middle (less severe than critical tests)
+            score = max(0.0, 1.0 - abs(mean_val - 0.5) / 0.5)
+        pattern_score += score * 1.0  # Normal weight
+        max_score += 1.0
 
-    expected_pattern_score = pattern_score / count if count > 0 else None
+    expected_pattern_score = pattern_score / max_score if max_score > 0 else None
 
     return ValidationMetrics(
         method_name=estimates[0].method if estimates else "unknown",
@@ -224,11 +235,18 @@ def print_validation_report(
     print("\n\n3. INTERPRETATION GUIDE")
     print("-" * 80)
     print("""
-Expected Pattern Score:
-  >0.8: Excellent match to expected patterns
-  0.6-0.8: Good match, reasonable behavior
-  0.4-0.6: Moderate match, some unexpected patterns
-  <0.4: Poor match, unexpected behavior
+Expected Pattern Score (weighted: critical tests count 2x):
+  >0.85: Excellent - passes critical tests (well-established facts, certain predictions)
+  0.70-0.85: Good - mostly correct patterns with minor issues
+  0.50-0.70: Moderate - some critical failures
+  <0.50: Poor - failing critical tests, unreliable
+
+Critical Tests (must pass):
+  - Well-established facts: >0.7 (ideally >0.85)
+  - Certain predictions: >0.8 (ideally >0.9)
+
+Nice-to-Have Tests:
+  - Contested facts: 0.4-0.6 (middling uncertainty)
 
 Correlation between methods:
   >0.7: Strong agreement, likely measuring similar signal
